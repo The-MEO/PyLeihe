@@ -1,0 +1,15 @@
+# ignore automatic generated documentation, test and coverage results
+doc
+htmlcov
+.coverage
+.pytest_cache
+
+# python stuff
+**/__pycache__
+*.pyc
+
+# editor settings
+.vscode
+
+# project specific
+/*.json

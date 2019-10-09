@@ -1,0 +1,43 @@
+image: python:3.6-alpine
+stages:
+  - test
+  - docu
+  - deploy
+
+default:
+  before_script:
+    - pip install -r requirements.txt
+    - pip install -r requirements_tools.txt
+
+pytest:
+  stage: test
+  artifacts:
+    paths:
+      - htmlcov
+    expire_in: 30 days
+  script:
+    - pytest
+
+pdoc:
+  stage: docu
+  artifacts:
+    paths:
+      - doc/PyLeihe
+    expire_in: 30 days
+  script:
+    - pdoc --html -o ./doc -f PyLeihe
+
+pages:
+  stage: deploy
+  dependencies:
+    - pytest
+    - pdoc
+  script:
+    - mv htmlcov/ public/htmlcov
+    - mv doc/PyLeihe public/
+  artifacts:
+    paths:
+      - public
+    expire_in: 30 days
+  only:
+    - master
