@@ -33,11 +33,13 @@ pages:
     - pytest
     - pdoc
   script:
-    - mv htmlcov/ public/htmlcov
     - mv doc/PyLeihe public/
+    - mv htmlcov public/htmlcov
   artifacts:
     paths:
       - public
     expire_in: 30 days
   only:
     - master
+    - /.*pages.*$/
+  
