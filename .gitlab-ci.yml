@@ -1,24 +1,40 @@
-image: python:3.6-alpine
 stages:
   - test
   - docu
   - deploy
 
+variables:
+  CODECOV_TOKEN: "754dfb7f-65e3-4076-8572-81ddc52d60c1"
+
 default:
+  image: python:3.6-alpine
   before_script:
     - pip install -r requirements.txt
     - pip install -r requirements_tools.txt
 
-pytest:
+pytest:3.6:
   stage: test
   artifacts:
     paths:
       - htmlcov
     expire_in: 30 days
   script:
+    - pytest 
+  after_script:
     - pip install codecov
+    - codecov
+
+
+pytest:3:
+  stage: test
+  image: python:3
+  artifacts:
+    paths:
+      - htmlcov
+    expire_in: 30 days
+  script:
     - pytest
-    - codecov --token=nL0vljvAnGFbb9zAth9A
+    - mv htmlcov htmlcov3
 
 pdoc:
   stage: docu
@@ -31,12 +47,10 @@ pdoc:
 
 pages:
   stage: deploy
-  dependencies:
-    - pytest
-    - pdoc
   script:
     - mv doc/PyLeihe public/
     - mv htmlcov public/htmlcov
+    - mv htmlcov3 public/htmlcov3
   artifacts:
     paths:
       - public
