@@ -16,7 +16,9 @@ pytest:
       - htmlcov
     expire_in: 30 days
   script:
+    - pip install codecov
     - pytest
+    - codecov --token=nL0vljvAnGFbb9zAth9A
 
 pdoc:
   stage: docu
