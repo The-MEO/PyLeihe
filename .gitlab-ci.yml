@@ -52,6 +52,9 @@ coverage:
   dependencies:
     - pytest:3.6
   allow_failure: true
+  variables:
+    GIT_BRANCH: $CI_COMMIT_REF_NAME
+    GIT_COMMIT_SHA: $CI_COMMIT_SHA
   before_script:
     - pip install codecov
     - apk --no-cache add curl
@@ -60,7 +63,7 @@ coverage:
     - ./cc-test-reporter before-build
   script:
     - codecov
-    - ./cc-test-reporter after-build --coverage-input-type coverage.py
+    - ./cc-test-reporter after-build --coverage-input-type coverage.py cov.xml
 
 pages:
   stage: deploy
