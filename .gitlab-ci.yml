@@ -57,8 +57,9 @@ coverage:
     GIT_COMMIT_SHA: $CI_COMMIT_SHA
   before_script:
     - pip install codecov
-    - apk --no-cache add curl
-    - curl -L https://codeclimate.com/downloads/test-reporter/test-reporter-latest-linux-amd64 > ./cc-test-reporter
+    - apk --no-cache add git
+    - export GIT_COMMITTED_AT=$(git show -s --format=%ct $CI_COMMIT_SHA)
+    - wget -O cc-test-reporter https://codeclimate.com/downloads/test-reporter/test-reporter-latest-linux-amd64
     - chmod +x ./cc-test-reporter
     - ./cc-test-reporter before-build
   script:
