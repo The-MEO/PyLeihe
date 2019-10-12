@@ -18,6 +18,7 @@ pytest:3.6:
     paths:
       - htmlcov
       - cov.xml
+      - .coverage
     expire_in: 30 days
   script:
     - pytest 
