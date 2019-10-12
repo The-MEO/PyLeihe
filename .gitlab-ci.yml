@@ -53,13 +53,14 @@ coverage:
     GIT_BRANCH: $CI_COMMIT_REF_NAME
     GIT_COMMIT_SHA: $CI_COMMIT_SHA
   before_script:
-    - pip install codecov
+    - pip install codecov codacy-coverage
     - apk --no-cache add git
     - wget -O cc-test-reporter https://codeclimate.com/downloads/test-reporter/test-reporter-latest-linux-amd64
     - chmod +x ./cc-test-reporter
     - ./cc-test-reporter before-build
   script:
     - codecov
+    - python-codacy-coverage -r cov.xml
     - ./cc-test-reporter after-build --coverage-input-type coverage.py cov.xml
 
 pages:
