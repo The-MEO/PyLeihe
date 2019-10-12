@@ -17,6 +17,7 @@ pytest:3.6:
   artifacts:
     paths:
       - htmlcov
+      - cov.xml
     expire_in: 30 days
   script:
     - pytest 
@@ -27,7 +28,8 @@ pytest:3:
   image: python:3
   artifacts:
     paths:
-      - htmlcov
+      - htmlcov3
+      - cov3.xml
     expire_in: 30 days
   script:
     - pytest
@@ -57,7 +59,7 @@ coverage:
     - ./cc-test-reporter before-build
   script:
     - codecov
-    - ./cc-test-reporter after-build
+    - ./cc-test-reporter after-build --coverage-input-type coverage.py
 
 pages:
   stage: deploy
