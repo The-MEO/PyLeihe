@@ -60,10 +60,7 @@ coverage:
     - ./cc-test-reporter before-build
   script:
     - codecov
-    - CODECOV_STATUS=$1
     - ./cc-test-reporter after-build --coverage-input-type coverage.py cov.xml
-    - CODECLIMATE_STATUS=$1
-    - exit CODECOV_STATUS && CODECLIMATE_STATUS
 
 pages:
   stage: deploy
