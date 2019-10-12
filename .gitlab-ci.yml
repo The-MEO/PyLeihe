@@ -20,9 +20,6 @@ pytest:3.6:
     expire_in: 30 days
   script:
     - pytest 
-  after_script:
-    - pip install codecov
-    - codecov
 
 
 pytest:3:
@@ -34,7 +31,9 @@ pytest:3:
     expire_in: 30 days
   script:
     - pytest
+  after_script:
     - mv htmlcov htmlcov3
+    - mv cov.xml cov3.xml
 
 pdoc:
   stage: docu
@@ -44,6 +43,20 @@ pdoc:
     expire_in: 30 days
   script:
     - pdoc --html -o ./doc -f PyLeihe
+
+coverage:
+  stage: docu
+  dependencies:
+    - pytest:3.6
+  allow_failure: true
+  before_script:
+    - pip install codecov
+    - curl -L https://codeclimate.com/downloads/test-reporter/test-reporter-latest-linux-amd64 > ./cc-test-reporter
+    - chmod +x ./cc-test-reporter
+    - ./cc-test-reporter before-build
+  script:
+    - codecov
+    - ./cc-test-reporter after-build
 
 pages:
   stage: deploy
