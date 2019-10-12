@@ -3,9 +3,6 @@ stages:
   - docu
   - deploy
 
-variables:
-  CODECOV_TOKEN: "754dfb7f-65e3-4076-8572-81ddc52d60c1"
-
 default:
   image: python:3.6-alpine
   before_script:
@@ -58,15 +55,15 @@ coverage:
   before_script:
     - pip install codecov
     - apk --no-cache add git
-    - export GIT_COMMITTED_AT=$(git show -s --format=%ct $CI_COMMIT_SHA)
     - wget -O cc-test-reporter https://codeclimate.com/downloads/test-reporter/test-reporter-latest-linux-amd64
     - chmod +x ./cc-test-reporter
     - ./cc-test-reporter before-build
   script:
     - codecov
-    - echo $GIT_BRANCH
-    - echo $GIT_COMMIT_SHA
-    - ./cc-test-reporter after-build --debug --coverage-input-type coverage.py cov.xml
+    - CODECOV_STATUS=$1
+    - ./cc-test-reporter after-build --coverage-input-type coverage.py cov.xml
+    - CODECLIMATE_STATUS=$1
+    - exit CODECOV_STATUS && CODECLIMATE_STATUS
 
 pages:
   stage: deploy
