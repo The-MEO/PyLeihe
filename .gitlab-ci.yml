@@ -63,7 +63,9 @@ coverage:
     - ./cc-test-reporter before-build
   script:
     - codecov
-    - ./cc-test-reporter after-build --coverage-input-type coverage.py cov.xml
+    - echo $GIT_BRANCH
+    - echo $GIT_COMMIT_SHA
+    - ./cc-test-reporter after-build --debug --coverage-input-type coverage.py cov.xml
 
 pages:
   stage: deploy
