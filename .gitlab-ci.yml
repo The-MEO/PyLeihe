@@ -1,22 +1,39 @@
-image: python:3.6-alpine
 stages:
   - test
   - docu
   - deploy
 
 default:
+  image: python:3.6-alpine
   before_script:
     - pip install -r requirements.txt
     - pip install -r requirements_tools.txt
 
-pytest:
+pytest:3.6:
   stage: test
   artifacts:
     paths:
       - htmlcov
+      - coverage.xml
+      - .coverage
+    expire_in: 30 days
+  script:
+    - pytest 
+
+
+pytest:3:
+  stage: test
+  image: python:3
+  artifacts:
+    paths:
+      - htmlcov3
+      - coverage3.xml
     expire_in: 30 days
   script:
     - pytest
+  after_script:
+    - mv htmlcov htmlcov3
+    - mv coverage.xml coverage3.xml
 
 pdoc:
   stage: docu
@@ -27,14 +44,31 @@ pdoc:
   script:
     - pdoc --html -o ./doc -f PyLeihe
 
+coverage:
+  stage: docu
+  dependencies:
+    - pytest:3.6
+  allow_failure: true
+  variables:
+    GIT_BRANCH: $CI_COMMIT_REF_NAME
+    GIT_COMMIT_SHA: $CI_COMMIT_SHA
+  before_script:
+    - pip install codecov codacy-coverage
+    - apk --no-cache add git
+    - wget -O cc-test-reporter https://codeclimate.com/downloads/test-reporter/test-reporter-latest-linux-amd64
+    - chmod +x ./cc-test-reporter
+    - ./cc-test-reporter before-build
+  script:
+    - codecov
+    - python-codacy-coverage -r coverage.xml
+    - ./cc-test-reporter after-build --coverage-input-type coverage.py coverage.xml
+
 pages:
   stage: deploy
-  dependencies:
-    - pytest
-    - pdoc
   script:
     - mv doc/PyLeihe public/
     - mv htmlcov public/htmlcov
+    - mv htmlcov3 public/htmlcov3
   artifacts:
     paths:
       - public
