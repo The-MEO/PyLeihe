@@ -1,6 +1,7 @@
 [run]
 branch = True
 source = PyLeihe
+concurrency = multiprocessing
 
 [report]
 exclude_lines =
@@ -11,3 +12,10 @@ exclude_lines =
 ignore_errors = True
 omit =
     tests/*
+precision = 2
+
+[html]
+directory = htmlcov
+
+[xml]
+output = coverage.xml

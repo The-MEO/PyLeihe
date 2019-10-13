@@ -1,3 +1,4 @@
 pdoc3
 pytest
 pytest-cov
+bandit
