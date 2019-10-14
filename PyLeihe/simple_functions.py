@@ -1,5 +1,7 @@
-from . import PyLeiheNet
+"""
+"""
 from multiprocessing.dummy import Pool
+from . import PyLeiheNet
 
 
 def correct_search_urls(PyLN):
@@ -8,26 +10,28 @@ def correct_search_urls(PyLN):
 
 
 def correct_searchurls_land(land):
+    # pylint: disable=line-too-long
     if land["libell-e"] is not None:
         if land.name in ("Badenwuerttemberg", "Rheinlandpfalz"):
-            land["libell-e"].search_url = "https://www2.onleihe.de/libell-e-sued/frontend/search,0-0-0-0-0-0-0-0-0-0-0.html"
+            land["libell-e"].search_url = "https://www2.onleihe.de/libell-e-sued/frontend/search,0-0-0-0-0-0-0-0-0-0-0.html"  # noqa: E501
         else:
-            land["libell-e"].search_url = "https://www2.onleihe.de/libell-e-nord/frontend/search,0-0-0-0-0-0-0-0-0-0-0.html"
+            land["libell-e"].search_url = "https://www2.onleihe.de/libell-e-nord/frontend/search,0-0-0-0-0-0-0-0-0-0-0.html"  # noqa: E501
     if land.name == "Badenwuerttemberg":
-        land.fix_searchurl("meine-medienwelt", "https://www1.onleihe.de/heilbronn/frontend/search,0-0-0-0-0-0-0-0-0-0-0.html")
+        land.fix_searchurl("meine-medienwelt", "https://www1.onleihe.de/heilbronn/frontend/search,0-0-0-0-0-0-0-0-0-0-0.html")  # noqa: E501
         remove_baden = land["baden"]
         if remove_baden is not None:
             land.Bibliotheken.remove(remove_baden)
     elif land.name == "Sachsen":
-        land.fix_searchurl("grossenhain", "https://www2.onleihe.de/bibo-on/frontend/search,0-0-0-0-0-0-0-0-0-0-0.html")
+        land.fix_searchurl("grossenhain", "https://www2.onleihe.de/bibo-on/frontend/search,0-0-0-0-0-0-0-0-0-0-0.html")  # noqa: E501
     elif land.name == "Schleswigholstein":
-        land.fix_searchurl("amt-buechen", "https://www2.onleihe.de/bibo-on/frontend/search,0-0-0-0-0-0-0-0-0-0-0.html")
+        land.fix_searchurl("amt-buechen", "https://www2.onleihe.de/bibo-on/frontend/search,0-0-0-0-0-0-0-0-0-0-0.html")  # noqa: E501
     elif land.name == "Nordrheinwestfalen":
-        land.fix_searchurl("stadtdo", "https://www2.onleihe.de/dortmund/frontend/search,0-0-0-0-0-0-0-0-0-0-0.html")
+        land.fix_searchurl("stadtdo", "https://www2.onleihe.de/dortmund/frontend/search,0-0-0-0-0-0-0-0-0-0-0.html")  # noqa: E501
     elif land.name == "Sachsenanhalt":
-        land.fix_searchurl("Sangerhausen", "https://biblio24.onleihe.de/verbund_sachsen_anhalt/frontend/welcome,51-0-0-100-0-0-1-0-0-0-0.html")
+        land.fix_searchurl("Sangerhausen", "https://biblio24.onleihe.de/verbund_sachsen_anhalt/frontend/welcome,51-0-0-100-0-0-1-0-0-0-0.html")  # noqa: E501
     elif land.name == "Berlin":
-        land.fix_searchurl("voebb24", "https://voebb.onleihe.de/berlin/frontend/search,0-0-0-0-0-0-0-0-0-0-0.html")
+        land.fix_searchurl("voebb24", "https://voebb.onleihe.de/berlin/frontend/search,0-0-0-0-0-0-0-0-0-0-0.html")  # noqa: E501
+    # pylint: enable=line-too-long
 
 
 def makejson(reload_data=False, filename=""):
@@ -76,7 +80,7 @@ def search_list(search="", category=None, use_json=True, jsonfile='', threads=4)
     return results
 
 
-def search_print(top=10, *args, **kwargs):
+def search_print(top=10, *args, **kwargs):  # pylint: disable=keyword-arg-before-vararg
     results = search_list(*args, **kwargs)
     results.sort(key=lambda x: x[1] if x is not None else -5, reverse=True)
     for i, r in enumerate(results):

@@ -85,10 +85,11 @@ class Bibliography(PyLeiheWeb):
             mp.raise_for_status()
         except requests.ConnectionError as exc:
             message = str(exc)
-            if "[Errno 11004] getaddrinfo failed" in message or "[Errno -2] Name or service not known" in message or "[Errno 8] nodename nor servname " in message:
+            if ("[Errno 11004] getaddrinfo failed" in message
+                    or "[Errno -2] Name or service not known" in message
+                    or "[Errno 8] nodename nor servname " in message):
                 return
-            else:
-                raise
+            raise
         self.search_url = self.getPostFormURL(
             mp.content, curr_url=mp.url, ContNode="input", ContNodeData={"id": "searchtext"})
         if self.search_url is None:
@@ -169,5 +170,5 @@ class Bibliography(PyLeiheWeb):
             f = open(self.title + ".html", 'wb')
             f.write(SearchRequest.content)
             f.close()
-        #print("[{0}] Treffer: {1}".format(self.title, Treffer))
+        # print("[{0}] Treffer: {1}".format(self.title, Treffer))
         return Treffer

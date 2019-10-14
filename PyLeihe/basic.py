@@ -15,7 +15,7 @@ class PyLeiheWeb:
     def __init__(self, sess=None):
         if sess is not None:
             self.Session = sess
-        if self.Session is None or sess == True:
+        if self.Session is None or sess is True:
             self.Session = requests.Session()
 
     @classmethod
@@ -59,7 +59,11 @@ class PyLeiheWeb:
 
     @classmethod
     def getPostFormURL(cls, content, ContNode="", curr_url=None, ContNodeData=None):
-        form = cls.searchNodeMultipleContain(content, "form", {"method": "post"}, ContNode, ContNodeData)
+        form = cls.searchNodeMultipleContain(content,
+                                             Node="form",
+                                             NodeAttr={"method": "post"},
+                                             ContNode=ContNode,
+                                             ContNodeData=ContNodeData)
         if form is None:
             return None
         form_action = form.get('action')
