@@ -110,6 +110,7 @@ class PyLeiheNet(PyLeiheWeb):
         for x in self.Laender:
             if x.lid == key or (isinstance(key, str) and x.name.lower() == key.lower()):
                 return x
+        return None
 
     @classmethod
     def reprJSON(cls):
