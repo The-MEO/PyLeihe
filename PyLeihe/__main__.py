@@ -7,7 +7,7 @@ Help is displayed with the `-h` parameter:
     ```
 """
 import sys
-import subprocess
+import subprocess  # nosec
 import argparse
 from . import PyLeiheNet, MediaType  # pylint: disable=unused-import
 from .simple_functions import makejson, search_print
@@ -25,7 +25,7 @@ def run_console(cmd):
     """
     print('[  ] ', end='')
     print(' '.join(cmd), end='', flush=True)
-    pdoc = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
+    pdoc = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)  # nosec
     pdoc_pipe = pdoc.communicate(timeout=15)
     if pdoc.returncode == 1:
         print("\r[!!]")
