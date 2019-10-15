@@ -1,13 +1,13 @@
 """
 Tests to check the command line interface from the module
 """
+from PyLeihe import __main__ as pylmain
 import sys
 import os
 from unittest import mock
 import pytest
 DIR = os.path.dirname(__file__)
 sys.path.append(os.path.join(DIR, ".."))
-from PyLeihe import __main__ as pylmain
 
 
 def test_checkmaincall():
@@ -63,6 +63,18 @@ def test_main_search(mock_makejson, mock_search_print, mock_run_console):
     mock_makejson.assert_not_called()
     mock_run_console.assert_not_called()
     assert mock_search_print.call_count == 2
+
+
+@mock.patch('PyLeihe.__main__.run_console')
+@mock.patch('PyLeihe.__main__.search_print')
+@mock.patch('PyLeihe.__main__.makejson')
+def test_main_search(mock_makejson, mock_search_print, mock_run_console):
+    ret_main = pylmain.main(["--make"])
+    assert ret_main == 0, "main should return no error exit code"
+    a, k = mock_run_console.call_args
+
+    mock_makejson.assert_not_called()
+    mock_run_console.assert_not_called()
 
 
 def test_parseargs():
