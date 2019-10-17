@@ -52,7 +52,7 @@ def parseargs(args):
     parser.add_argument('--makejson', help='group and correct and finally saves the data to a json file', action='store_true')  # noqa: E501
     parser.add_argument('-j', '--jsonfile', help="Path to the jsonfile", default="")  # noqa: E501
     parser.add_argument('-s', '--search', help="Search for keywords in all bibs")  # noqa: E501
-    parser.add_argument('-c', '--category', help="Media category", type=lambda t: MediaType[t], choices=list(MediaType), default=MediaType.alleMedien)  # noqa: E501
+    parser.add_argument('-c', '--category', help="Media category", type=MediaType.__getitem__, choices=list(MediaType), default=MediaType.alleMedien)  # noqa: E501
     parser.add_argument('-t', '--top', help="Number of print results", type=int, default=-1)  # noqa: E501
     parser.add_argument('--threads', help="Number of used parallel threads", type=int, default=4)  # noqa: E501
     parser.add_argument('--csv', help="stores result in csv", action='store_true')  # noqa: E501
@@ -63,6 +63,17 @@ def parseargs(args):
     # pylint: enable=line-too-long
     # print(parsed_args)
     return parsed_args
+
+
+def dev_make():
+    """
+    ONLY FOR DEVELOPER
+    runs some commands for final make.
+
+    Make Jobs:
+        * create documentation with pdoc
+    """
+    run_console(["python3", "-m", "pdoc", "--html", "-o", "./doc", "-f", "PyLeihe"])
 
 
 def main(args):
@@ -92,7 +103,7 @@ def main(args):
                      jsonfile=parsed_args.jsonfile,
                      threads=parsed_args.threads)
     if parsed_args.make:
-        run_console(["python3", "-m", "pdoc", "--html", "-o", "./doc", "-f", "PyLeihe"])
+        dev_make()
     if parsed_args.test:
         raise NotImplementedError("run the test in the project directory with `pytest`")
     return 0
