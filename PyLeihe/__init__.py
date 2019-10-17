@@ -2,7 +2,7 @@
 
 .. include:: ./../README.md
 """
-from .bibindex import PyLeiheNet
+from .bibindex import PyLeiheNet, BundesLand
 from .bibliography import Bibliography, MediaType
 
 __author__ = "TheMEO"
