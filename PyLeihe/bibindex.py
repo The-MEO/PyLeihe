@@ -16,7 +16,7 @@ class BundesLand(PyLeiheWeb):
     def __init__(self, lid, name):
         super().__init__()
         self.lid = int(lid)
-        self.name = name.capitalize()
+        self.name = name.capitalize().replace(' ', '_')
 
     def __getitem__(self, key):
         if isinstance(key, int):
