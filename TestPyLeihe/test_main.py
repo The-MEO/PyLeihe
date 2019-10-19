@@ -1,7 +1,9 @@
 """
 Tests to check the command line interface from the module
 """
+# pylint: disable=wrong-import-position,wildcard-import
 from unittest import mock
+import _paths  # pylint: disable=unused-import
 from PyLeihe import __main__ as pylmain
 
 

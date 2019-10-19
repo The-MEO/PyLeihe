@@ -1,10 +1,10 @@
-import sys
-import os
-DIR = os.path.dirname(__file__)
-sys.path.append(os.path.join(DIR, ".."))
-import pytest
-from PyLeihe.basic import PyLeiheWeb
+"""
+Testfunctins for `PyLeiheWeb` from `basic.py`
+"""
+from unittest import mock
 import requests
+import _paths  # pylint: disable=unused-import
+from PyLeihe.basic import PyLeiheWeb
 
 
 def test_session():
@@ -21,7 +21,11 @@ def test_session():
     assert plw1.Session != plw3.Session
     assert plw2.Session != plw3.Session
 
+
 def test_getURL():
+    """
+    Test for `PyLeiheWeb.getURL()`
+    """
     plw = PyLeiheWeb()
     assert plw.getURL("TEST") == "HTTPS://onleihe.net/TEST"
     assert plw.getURL(["Test", "index.html"]) == "HTTPS://onleihe.net/Test/index.html"
@@ -31,5 +35,9 @@ def test_getURL():
     plw = PyLeiheWeb()
     assert plw.DOMAIN == PyLeiheWeb.DOMAIN
 
+
 def test_getPostFormURL():
+    """
+    Test for `PyLeiheWeb.getPostFormURL()`
+    """
     pass
