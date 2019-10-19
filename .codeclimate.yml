@@ -44,8 +44,6 @@ plugins:
       threshold: "C"
   sonar-python:
     enabled: true
-    tests_patterns:
-      - TestPyLeihe/**
     checks:
       python:S117:
         enabled: false
