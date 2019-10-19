@@ -104,12 +104,9 @@ class PyLeiheWeb:
         found_forms = len(forms)
         if found_forms == 0:
             return None
-        elif found_forms == 1 or ContNode == "" or ContNode is None:
+        if found_forms == 1 and (ContNode == "" or ContNode is None):
             return forms[0]
-        else:
-            for f in forms:
-                if f.find(ContNode, ContNodeData):
-                    return f
+        return next(f for f in forms if f.find(ContNode, ContNodeData))
 
     @classmethod
     def getPostFormURL(cls, content, ContNode="", curr_url=None, ContNodeData=None):

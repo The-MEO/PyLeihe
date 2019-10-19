@@ -11,12 +11,11 @@ from .bibliography import Bibliography
 class BundesLand(PyLeiheWeb):
     BASIC_URL = "index.php?id={}"
 
-    Bibliotheken = []
-
-    def __init__(self, lid, name):
+    def __init__(self, lid, name, bibs=None):
         super().__init__()
         self.lid = int(lid)
         self.name = name.capitalize().replace(' ', '_')
+        self.Bibliotheken = bibs or []
 
     def __getitem__(self, key):
         if isinstance(key, int):
@@ -101,10 +100,9 @@ class BundesLand(PyLeiheWeb):
 class PyLeiheNet(PyLeiheWeb):
     URL_Deutschland = "fuer-leser-hoerer-zuschauer/ihre-onleihe-finden/onleihen-in-deutschland.html"
 
-    Laender = []
-
     def __init__(self):
         super().__init__()
+        self.Laender = []
 
     def __getitem__(self, key):
         for x in self.Laender:
@@ -123,10 +121,6 @@ class PyLeiheNet(PyLeiheWeb):
         return {l.name: l.reprJSON() for l in self.Laender}
 
     @classmethod
-    def reprJSON(cls):
-        return {l.name: l.reprJSON() for l in cls.Laender}
-
-    @classmethod
     def loadFromJSON(cls, data=None, filename=""):
         """
         Converts a typical json representation consisting of lists and dicts into an instance.
@@ -140,8 +134,12 @@ class PyLeiheNet(PyLeiheWeb):
             data: [optional] the representation as dict and lists
             filename: [optional] the path to the json file containing the data
         """
-        cls.Laender = [BundesLand.loadFromJSON(
+        pln = PyLeiheNet()
+        if data is None:
+            data = cls._loadJSONFile(filename)
+        pln.Laender = [BundesLand.loadFromJSON(
             ldata) for ldata in data.values()]
+        return pln
 
     def loadallBundesLaender(self, groupbytitle=True, loadsearchURLs=False):
         """

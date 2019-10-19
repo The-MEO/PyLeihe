@@ -31,11 +31,10 @@ def correct_searchurls_land(land):
         land: `BundesLand` with libraries with search_urls to be corrected
     """
     # pylint: disable=line-too-long
-    if land["libell-e"] is not None:
-        if land.name in ("Badenwuerttemberg", "Rheinlandpfalz"):
-            land["libell-e"].search_url = "https://www2.onleihe.de/libell-e-sued/frontend/search,0-0-0-0-0-0-0-0-0-0-0.html"  # noqa: E501
-        else:
-            land["libell-e"].search_url = "https://www2.onleihe.de/libell-e-nord/frontend/search,0-0-0-0-0-0-0-0-0-0-0.html"  # noqa: E501
+    if land["libell-e"] is not None and land.name in ("Badenwuerttemberg", "Rheinlandpfalz"):
+        land["libell-e"].search_url = "https://www2.onleihe.de/libell-e-sued/frontend/search,0-0-0-0-0-0-0-0-0-0-0.html"  # noqa: E501
+    elif land["libell-e"] is not None:
+        land["libell-e"].search_url = "https://www2.onleihe.de/libell-e-nord/frontend/search,0-0-0-0-0-0-0-0-0-0-0.html"  # noqa: E501
     if land.name == "Badenwuerttemberg":
         land.fix_searchurl("meine-medienwelt", "https://www1.onleihe.de/heilbronn/frontend/search,0-0-0-0-0-0-0-0-0-0-0.html")  # noqa: E501
         remove_baden = land["baden"]
@@ -54,7 +53,7 @@ def correct_searchurls_land(land):
     # pylint: enable=line-too-long
 
 
-def makejson(reload_data=False, filename=""):
+def makejson(reload_data=False, filename="", to_filename=""):
     """
     The aim of the function is to create a json file with all preprocessed data.
 
@@ -63,26 +62,29 @@ def makejson(reload_data=False, filename=""):
                     fresh from the website or from a local file.
         filename: `str` path to the json file
             from which the json data is imported if `reload_data` is `False`
+        to_filename: `str` path to the result json file - for further information see `toJSONFile()`
     Returns:
         the saved `PyLeiheNet` instance
     """
+    pln = PyLeiheNet()
     if reload_data:
         print("Lade Bundeslaender")
-        PyLeiheNet.getBundesLaender()
+        pln.getBundesLaender()
         print("Lade Bibliotheken der Bundeslaender")
-        PyLeiheNet.loadallBundesLaender(groupbytitle=True, loadsearchURLs=False)
+        pln.loadallBundesLaender(groupbytitle=True, loadsearchURLs=False)
     else:
-        PyLeiheNet.loadFromJSON(filename)
+        pln.loadFromJSON(filename=filename)
     print("SearchURLs manuell ergänzen")
-    correct_search_urls(PyLeiheNet)
+    correct_search_urls(pln)
     print("SearchURLslLaden")
-    for land in PyLeiheNet.Laender:
+    for land in pln.Laender:
         land.loadsearchURLs(newtitle=True)
     print("Neues Gruppieren mit SearchURL")
-    for land in PyLeiheNet.Laender:
+    for land in pln.Laender:
         land.groupbytitle()
     print("Speichere JSON")
-    PyLeiheNet.toJSONFile()
+    pln.toJSONFile(to_filename)
+    return pln
 
 
 def parallel_search_helper(search="", category=None):
@@ -125,12 +127,13 @@ def search_list(search="", category=None, use_json=True, jsonfile='', threads=4)
         jsonfile: `str` path to json file (used for `use_json = True`)
         threads: `int` number of concurrent threads to be used for searching
     """
+    pln = PyLeiheNet()
     if use_json:
-        PyLeiheNet.loadFromJSON(jsonfile)
+        pln.loadFromJSON(filename=jsonfile)
     else:
-        PyLeiheNet.getBundesLaender()
-        PyLeiheNet.loadallBundesLaender(groupbytitle=True, loadsearchURLs=False)
-    bibs = [b for l in PyLeiheNet.Laender for b in l.Bibliotheken]
+        pln.getBundesLaender()
+        pln.loadallBundesLaender(groupbytitle=True, loadsearchURLs=False)
+    bibs = [b for l in pln.Laender for b in l.Bibliotheken]
     results = []
     if threads > 0:
         workpool = Pool(threads)
@@ -161,7 +164,7 @@ def search_print(top=10, *args, **kwargs):  # pylint: disable=keyword-arg-before
     results = search_list(*args, **kwargs)
     results.sort(key=lambda x: x[1] if x is not None else -5, reverse=True)
     for i, r in enumerate(results):
-        if i > top and top > 0:
+        if i > top > 0:
             break
         b = r[0]
         title = b.title or "NA"

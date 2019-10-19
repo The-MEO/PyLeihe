@@ -106,6 +106,8 @@ def main(args):
         dev_make()
     if parsed_args.test:
         raise NotImplementedError("run the test in the project directory with `pytest`")
+    if parsed_args.csv:
+        raise NotImplementedError("CSV export not yet available")
     return 0
 
 

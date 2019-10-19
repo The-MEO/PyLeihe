@@ -29,7 +29,7 @@ class Bibliography(PyLeiheWeb):
             url = url.replace("http//", "")
         self.url_up = url
         self.url = up.urlparse(url)
-        self.cities = cities or ['']
+        self.cities = cities or []
 
         self.search_url = None
         self.LastSearch = -255
@@ -48,7 +48,7 @@ class Bibliography(PyLeiheWeb):
             self.title = server
         elif len(url.path) >= 3 and len(spath) > 1:
             self.title = spath[1]
-        elif self.cities[0] != '':
+        elif len(self.cities) > 0:
             self.title = self.cities[0]
             if len(self.cities) > 1:
                 self.title += "..."
@@ -79,37 +79,53 @@ class Bibliography(PyLeiheWeb):
         bib.search_url = data["search_url"]
         return bib
 
-    def grapSearchURL(self):
+    def _grapSearchURL_extendedSearch(self, mp):
+        a_search = self.searchNodeMultipleContain(
+            mp.content, "a", {'title': 'Erweiterte Suche'})
+        if a_search is not None:
+            return a_search.get('href')
+        return None
+
+    def _grapSearchURL_href_secondSearch(self, mp):
+        url = None
+        a_search = self.searchNodeMultipleContain(mp.content, "a", mp.url)
+        if a_search is not None:
+            try_second_search = a_search.get('href')
+            mp = self.Session.get(try_second_search)
+            mp.raise_for_status()
+            url = self.getPostFormURL(
+                mp.content,
+                curr_url=mp.url,
+                ContNode="input", ContNodeData={"id": "searchtext"})
+        return url
+
+    def _grapSearchURL_loadData(self):
+        mp = None
         try:
             mp = self.Session.get(up.urlunparse(self.url))
             mp.raise_for_status()
         except requests.ConnectionError as exc:
             message = str(exc)
-            if ("[Errno 11004] getaddrinfo failed" in message
-                    or "[Errno -2] Name or service not known" in message
-                    or "[Errno 8] nodename nor servname " in message):
-                return
+            if ("[Errno 11004] getaddrinfo failed" in message or
+                    "[Errno -2] Name or service not known" in message or
+                    "[Errno 8] nodename nor servname " in message):
+                return None
             raise
+        return mp
+
+    def grapSearchURL(self):
+        mp = self._grapSearchURL_loadData()
+        if mp is None:
+            return
         self.search_url = self.getPostFormURL(
             mp.content, curr_url=mp.url, ContNode="input", ContNodeData={"id": "searchtext"})
         if self.search_url is None:
-            a_search = self.searchNodeMultipleContain(
-                mp.content, "a", {'title': 'Erweiterte Suche'})
-            if a_search is not None:
-                self.search_url = a_search.get('href')
+            self.search_url = self._grapSearchURL_extendedSearch(mp)
         if self.search_url is None:
-            a_search = self.searchNodeMultipleContain(mp.content, "a", mp.url)
-            if a_search is not None:
-                try_second_search = a_search.get('href')
-                mp = self.Session.get(try_second_search)
-                mp.raise_for_status()
-                self.search_url = self.getPostFormURL(
-                    mp.content,
-                    curr_url=mp.url,
-                    ContNode="input", ContNodeData={"id": "searchtext"})
+            self.search_url = self._grapSearchURL_href_secondSearch(mp)
         if self.search_url is None:
-            print("No search-URL could be found for "
-                  + self.title + " on: " + mp.url)
+            print("No search-URL could be found for " +
+                  self.title + " on: " + mp.url)
 
     def SetSearchResultsPerPage(self, amount: int = 100, search_result_page=None):
         if search_result_page is not None:
