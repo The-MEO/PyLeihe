@@ -112,30 +112,59 @@ class PyLeiheNet(PyLeiheWeb):
                 return x
         return None
 
+    def reprJSON(self):
+        """
+        function returns a representation of the instance from JSON compliant data types
+        (lists and dictionaries).
+
+        For contained instances of other classes,
+        their respective conversion functions are called.
+        """
+        return {l.name: l.reprJSON() for l in self.Laender}
+
     @classmethod
     def reprJSON(cls):
         return {l.name: l.reprJSON() for l in cls.Laender}
 
     @classmethod
-    def loadFromJSON(cls, filename=""):
-        data = cls._loadJSONFile(filename)
+    def loadFromJSON(cls, data=None, filename=""):
+        """
+        Converts a typical json representation consisting of lists and dicts into an instance.
+
+        For contained instances of other classes,
+        their respective conversion functions are called.
+
+        If no data is passed, the `_loadJSONFile` with the filename parameter will be used.
+
+        Arguments:
+            data: [optional] the representation as dict and lists
+            filename: [optional] the path to the json file containing the data
+        """
         cls.Laender = [BundesLand.loadFromJSON(
             ldata) for ldata in data.values()]
 
-    @classmethod
-    def loadallBundesLaender(cls, groupbytitle=True, loadsearchURLs=False):
-        if not cls.Laender:
-            cls.getBundesLaender()
+    def loadallBundesLaender(self, groupbytitle=True, loadsearchURLs=False):
+        """
+        Loads the federal states and the addresses of the corresponding libraries from the Internet.
 
-        for land in cls.Laender:
+        Arguments:
+            groupbytitle: [bool]
+            loadsearchURLs: [bool]
+        """
+        if not self.Laender:
+            self.getBundesLaender()
+
+        for land in self.Laender:
             land.loadBibURLs()
             if loadsearchURLs:
                 land.loadsearchURLs()
             if groupbytitle:
                 land.groupbytitle()
 
-    @classmethod
-    def getBundesLaender(cls):
+    def getBundesLaender(self):
+        """
+        Loads the federal states and their urls from the Internet.
+        """
         # load data from internet
         germany = PyLeiheNet.getURL(PyLeiheNet.URL_Deutschland)
         r = requests.get(germany)
@@ -143,4 +172,4 @@ class PyLeiheNet(PyLeiheWeb):
         # analyze html
         soup = BeautifulSoup(r.content, features="html.parser")
         areas = soup.find_all('area', attrs={'alt': 'Zum Wunschformular'})
-        cls.Laender = [BundesLand.from_url(a['href']) for a in areas]
+        self.Laender = [BundesLand.from_url(a['href']) for a in areas]
