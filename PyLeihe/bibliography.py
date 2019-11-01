@@ -1,4 +1,8 @@
 # -*- coding: utf-8 -*-
+"""
+Contains the `Bibliography` class definition to abstract one library.
+Also contains the enumeration for the diferent mediatypes.
+"""
 from enum import Enum
 import re
 import urllib.parse as up
@@ -8,6 +12,10 @@ from .basic import PyLeiheWeb
 
 
 class MediaType(Enum):
+    """
+    Represents the different media types and
+    their corresponding html value.
+    """
     alleMedien = -1
     eAudio = 400002
     eBook = 400001
@@ -23,7 +31,19 @@ class MediaType(Enum):
 
 
 class Bibliography(PyLeiheWeb):
+    """
+    Abstraction of one or more libraries and their bibliographie
+    """
+
     def __init__(self, url, cities=None, session=None):
+        """
+        Arguments:
+            url: `str` URL to the website of the library with search field
+            cities: `list[str]` list of city names that are included in the
+                library association
+            session: `requests.session` set some session settings for
+                customized search
+        """
         super().__init__(session)
         if "http//" in url:
             url = url.replace("http//", "")
@@ -39,6 +59,18 @@ class Bibliography(PyLeiheWeb):
         self.generateTitle()
 
     def _generateTitleByUrl(self, url):
+        """
+        Generates a meaningful title `self.title` based on the url.
+
+        The URL usually contains a name of the representative library
+        association.
+        This can be extracted with simple methods and used for later output
+
+        Arguments:
+            url: `str` or `urllib.parse.ParseResult` URL to the website of the
+                library.
+
+        """
         if isinstance(url, str):
             url = up.urlparse(url)
         spath = url.path.split('/')
@@ -54,15 +86,29 @@ class Bibliography(PyLeiheWeb):
                 self.title += "..."
 
     def generateTitle(self):
+        """
+        Calls the corresponding subfunction to generate a new title.
+
+        The called function depends on whether a search url has already been
+        found or not.
+        """
         if self.search_url is None:
             self._generateTitleByUrl(self.url)
         else:
             self._generateTitleByUrl(self.search_url)
 
     def __repr__(self):
-        return "{}({!r}, {})".format(self.__class__.__name__, self.title, up.urlunparse(self.url))
+        return "{}({!r}, {})".format(self.__class__.__name__,
+                                     self.title,
+                                     up.urlunparse(self.url))
 
     def reprJSON(self):
+        """
+        Creates a JSON compatible representation of the instance.
+
+        Returns:
+            json compatible representation `dict[str->json compatible object]`.
+        """
         jdict = {
             "name": self.title,
             "url": up.urlunparse(self.url),
@@ -73,6 +119,17 @@ class Bibliography(PyLeiheWeb):
 
     @classmethod
     def loadFromJSON(cls, data=None):
+        """
+        Generates a new instance based on JSON data.
+
+        Arguments:
+            data: _optional_ parsed json as dict with json comaptible
+                python objects
+                *if None* `_loadJSONFile` is called and data is loaded from disk
+
+        Returns:
+            new instance
+        """
         if data is None:
             data = cls._loadJSONFile()
         bib = Bibliography(data["url"], cities=data["cities"])
@@ -80,6 +137,16 @@ class Bibliography(PyLeiheWeb):
         return bib
 
     def _grapSearchURL_extendedSearch(self, mp):
+        """
+        Searches a html page for the link-url to an advanced search.
+
+        Arguments:
+            mp: `requests.Response` to search in
+
+        Returns:
+            `None` if no url was found
+            else `str` with the result url
+        """
         a_search = self.searchNodeMultipleContain(
             mp.content, "a", {'title': 'Erweiterte Suche'})
         if a_search is not None:
@@ -87,6 +154,17 @@ class Bibliography(PyLeiheWeb):
         return None
 
     def _grapSearchURL_href_secondSearch(self, mp):
+        """
+        Searches for the address of the search form by following the link.
+
+        First the link to the search page is searched.
+        This url is opened with the session and the address of the
+        search endpoint (post target) is extracted from the page there.
+
+        Returns:
+            * `None` if no url was found
+            * else `str` with the result url
+        """
         url = None
         a_search = self.searchNodeMultipleContain(mp.content, "a", mp.url)
         if a_search is not None:
@@ -100,6 +178,20 @@ class Bibliography(PyLeiheWeb):
         return url
 
     def _grapSearchURL_loadData(self):
+        """
+        Loads the website from the library and returns the Response.
+
+        Returns:
+            * `None` if the data could not be loaded
+            * else `requets.Respons` with the page content in
+                `requets.Respons.content`
+
+        Raises:
+            see `requets.Response.raise_for_status` except:
+                * [Errno 11004] getaddrinfo failed
+                * [Errno -2] Name or service not known
+                * [Errno 8] nodename nor servname
+        """
         mp = None
         try:
             mp = self.Session.get(up.urlunparse(self.url))
@@ -114,11 +206,23 @@ class Bibliography(PyLeiheWeb):
         return mp
 
     def grapSearchURL(self):
+        """
+        Searches the library website for the endpoint (post target) of the
+        search form.
+
+        1. Loads the content of the website
+        2. trys different methods to extract the post target
+            1. searches input field with id for simple search
+            2. searches for advanced search
+            3. searches link to different search page
+        3. stores the result in `search_url`
+        """
         mp = self._grapSearchURL_loadData()
         if mp is None:
             return
         self.search_url = self.getPostFormURL(
-            mp.content, curr_url=mp.url, ContNode="input", ContNodeData={"id": "searchtext"})
+            mp.content, curr_url=mp.url,
+            ContNode="input", ContNodeData={"id": "searchtext"})
         if self.search_url is None:
             self.search_url = self._grapSearchURL_extendedSearch(mp)
         if self.search_url is None:
@@ -128,6 +232,18 @@ class Bibliography(PyLeiheWeb):
                   self.title + " on: " + mp.url)
 
     def SetSearchResultsPerPage(self, amount: int = 100, search_result_page=None):
+        """
+        Changes the amount of results per page on the server side.
+
+        Arguments:
+            amount: _optional_ `int` maximum Amount of results on one page
+            search_result_page: _optional_ `requests.Response` result page from
+                one page where the amount can be set.
+                The changed number is than stored in the session on server side.
+
+        Returns:
+            `requests.Response` Response from the post-command.
+        """
         if search_result_page is not None:
             set_results_url = self.getPostFormURL(
                 search_result_page.content,
@@ -138,7 +254,18 @@ class Bibliography(PyLeiheWeb):
         set_page.raise_for_status()
         return set_page
 
-    def parse_results(self, SearchRequest):
+    @staticmethod
+    def parse_results(SearchRequest):
+        """
+        Extracts the number of search results from the result page
+
+        Arguments:
+            SearchRequest: `requests.Response` the result page of a search
+
+        Returns:
+            `int` number of results
+            -1 if regex failed
+        """
         m = re.search(
             r"Suchergebnis .* ([\d.]+|keine)[^0-9.]*[Tt]reffer.*", SearchRequest.text)
         Treffer = -1
@@ -150,6 +277,19 @@ class Bibliography(PyLeiheWeb):
         return Treffer
 
     def search(self, text: str, kategorie: MediaType = None, savefile=False):
+        """
+        Performs a search query to a library.
+
+        Arguments:
+            text: `str` keyword to search for
+            kategorie: _optional_ `MediaType` the media category to be searched
+            savefile: _optional_ `bool` if the result page of the search should
+                be stored on the local disc. The file name is taken from the
+                title of the library.
+
+        Returns:
+            `int` number of results
+        """
         if kategorie is None:
             kategorie = MediaType.alleMedien
         # get MainPage
