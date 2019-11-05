@@ -45,7 +45,7 @@ class BundesLand(PyLeiheWeb):
                 * `int` with element index
                 * `str` name of the `Bibliography` _case insensitive_
         """
-        if isinstance(key, int):
+        if isinstance(key, (int, slice)):
             return self.Bibliotheken[key]
         for x in self.Bibliotheken:
             if x.title.lower() == key.lower():

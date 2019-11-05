@@ -45,6 +45,8 @@ class Bibliography(PyLeiheWeb):
                 customized search
         """
         super().__init__(session)
+        if not url:
+            url = "NoURL"
         if "http//" in url:
             url = url.replace("http//", "")
         self.url_up = url
@@ -75,9 +77,9 @@ class Bibliography(PyLeiheWeb):
             url = up.urlparse(url)
         spath = url.path.split('/')
         self.title = url.netloc
-        server = url.netloc.split('.')[-2]
-        if server != 'onleihe':
-            self.title = server
+        domains = url.netloc.split('.')
+        if len(domains) >= 2 and domains[-2] != 'onleihe':
+            self.title = domains[-2]
         elif len(url.path) >= 3 and len(spath) > 1:
             self.title = spath[1]
         elif len(self.cities) > 0:
@@ -100,7 +102,7 @@ class Bibliography(PyLeiheWeb):
     def __repr__(self):
         return "{}({!r}, {})".format(self.__class__.__name__,
                                      self.title,
-                                     up.urlunparse(self.url))
+                                     self.url_up)
 
     def reprJSON(self):
         """
@@ -111,7 +113,7 @@ class Bibliography(PyLeiheWeb):
         """
         jdict = {
             "name": self.title,
-            "url": up.urlunparse(self.url),
+            "url": self.url_up,
             "search_url": self.search_url,
             "cities": self.cities
         }
@@ -228,8 +230,8 @@ class Bibliography(PyLeiheWeb):
         if self.search_url is None:
             self.search_url = self._grapSearchURL_href_secondSearch(mp)
         if self.search_url is None:
-            print("No search-URL could be found for " +
-                  self.title + " on: " + mp.url)
+            print("No search-URL could be found for "
+                  + self.title + " on: " + mp.url)
 
     def SetSearchResultsPerPage(self, amount: int = 100, search_result_page=None):
         """
