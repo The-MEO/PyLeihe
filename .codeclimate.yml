@@ -8,7 +8,7 @@ checks:              # set same as in .pylintrc
       threshold: 4
   file-lines:
     config:
-      threshold: 250
+      threshold: 300
   method-complexity:
     config:
       threshold: 5
