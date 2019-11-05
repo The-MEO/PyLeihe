@@ -80,6 +80,27 @@ class PyLeiheWeb:
         return data
 
     @classmethod
+    def loadFromJSON(cls, data=None):
+        """
+        Converts a typical json representation consisting of lists/dicts into
+        an instance.
+
+        For contained instances of other classes,
+        their respective conversion functions are called.
+
+        If no data is passed, the data is loaded by calling `_loadJSONFile()`.
+
+        Arguments:
+            data: _optional_ parsed json as dict with json comaptible
+                python objects
+                *if None* `_loadJSONFile` is called and data is loaded from disk
+
+        Returns:
+            new instance
+        """
+        raise NotImplementedError()
+
+    @classmethod
     def searchNodeMultipleContain(cls, content, Node, NodeAttr, ContNode=None, ContNodeData=None):
         """
         Searches an html text `content` for the first occurrence of an `Node`

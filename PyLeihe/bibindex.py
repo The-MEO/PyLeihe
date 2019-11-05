@@ -1,4 +1,7 @@
 # -*- coding: utf-8 -*-
+"""
+Contains container objects to group the libraries and bibliographies logically
+"""
 from collections import defaultdict
 import re
 import requests
@@ -9,15 +12,39 @@ from .bibliography import Bibliography
 
 
 class BundesLand(PyLeiheWeb):
+    """
+    Object to group bibliographies `Bibliography` (into their federal states).
+
+    In addition to the functions for grouping, the class provides an
+    abstraction of the individual federal states.
+    So they can be load with their corresponding `Bibliography`.
+
+    """
     BASIC_URL = "index.php?id={}"
 
     def __init__(self, lid, name, bibs=None):
+        """
+        Arguments:
+            lid: to `int`convertable object, as unique ID
+            name: `str` name of the group (federal state)
+            bibs: _optional_ `list[bibliography]` the initial elements of
+                the group
+        """
         super().__init__()
         self.lid = int(lid)
         self.name = name.capitalize().replace(' ', '_')
         self.Bibliotheken = bibs or []
 
     def __getitem__(self, key):
+        """
+        Returns the object corresponding to the `key` or
+            `None` if there exists none.
+
+        Arguments:
+            key:
+                * `int` with element index
+                * `str` name of the `Bibliography` _case insensitive_
+        """
         if isinstance(key, int):
             return self.Bibliotheken[key]
         for x in self.Bibliotheken:
@@ -26,6 +53,12 @@ class BundesLand(PyLeiheWeb):
         return None
 
     def loadBibURLs(self):
+        """
+        Loads all `Bibliography`s from the website of the federal state.
+
+        **Warning**
+        Overrides the internal list with objects.
+        """
         uebersicht = PyLeiheNet.getURL(self.BASIC_URL.format(self.lid))
         r = requests.get(uebersicht)
         r.raise_for_status()
@@ -47,19 +80,40 @@ class BundesLand(PyLeiheWeb):
         self.Bibliotheken = [Bibliography(k, v) for k, v in workBibs.items()]
 
     def loadsearchURLs(self, newtitle=False, force=False):
+        """
+        Loads all search urls for the containing elements.
+
+        For additional information see: `Bibliography.grapSearchURL()`
+
+        Arguments:
+            newtitle: `bool` _optional_ whether new title names are to be
+                generated on the basis of the new available data
+        """
         for bib in self.Bibliotheken:
             if force or bib.search_url is None:
                 bib.grapSearchURL()
             if newtitle:
                 bib.generateTitle()
 
-    def fix_searchurl(self, bib, url):
-        bib = self[bib]
+    def fix_searchurl(self, key, url):
+        """
+        Sets a new search url for a library with the `key` if possible.
+        """
+        bib = self[key]
         if bib is not None:
             bib.search_url = url
 
     @classmethod
     def from_url(cls, url):
+        """
+        Creates a new instance from a url.
+
+        Arguments:
+            url: `str` in the format `...id=ID#Name...`
+
+        Raises:
+            `ValueError` if the URL did not fulfill the search condition.
+        """
         m = re.search(r"id=(\d+)#([a-zA-Z]+)", url)
         if m is not None:
             return BundesLand(m.group(1), m.group(2))
@@ -69,6 +123,9 @@ class BundesLand(PyLeiheWeb):
         return "{}({:>2d}, {})".format(self.__class__.__name__, self.lid, self.name)
 
     def groupbytitle(self):
+        """
+        Merges multiple list objects (`Bibliography`) by the same title name.
+        """
         dict_title = defaultdict(list)
         for bib in self.Bibliotheken:
             dict_title[bib.title].append(bib)
@@ -98,6 +155,9 @@ class BundesLand(PyLeiheWeb):
 
 
 class PyLeiheNet(PyLeiheWeb):
+    """
+    Group Object for multiple `BundesLand` instances.
+    """
     URL_Deutschland = "fuer-leser-hoerer-zuschauer/ihre-onleihe-finden/onleihen-in-deutschland.html"
 
     def __init__(self):
@@ -105,6 +165,15 @@ class PyLeiheNet(PyLeiheWeb):
         self.Laender = []
 
     def __getitem__(self, key):
+        """
+        Returns the `BundesLand` belonging to the `key` or `None`.
+
+        Arguments:
+            key:
+                * `int` the id of the requested `BundesLand`
+                * `str` the name of the requested `BundesLand`
+                    _case insensitive_
+        """
         for x in self.Laender:
             if x.lid == key or (isinstance(key, str) and x.name.lower() == key.lower()):
                 return x
