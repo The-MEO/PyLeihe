@@ -177,3 +177,47 @@ class PyLeiheWeb:
         if not isinstance(to, str):
             to = "/".join(to)
         return cls.SCHEME + "://" + cls.DOMAIN + "/" + to
+
+    def simpleGET(self, url, **kwargs):
+        """
+        Simple function to load one URL with GET.
+
+        Arguments:
+            url (str or up.ParseResult): with the destination adress
+            **kwargs: additional configuration for `request.Session.get`
+
+        Returns:
+            * `None` if the data could not be loaded
+            * else `requets.Respons` with the page content in
+                `requets.Respons.content`
+
+        Raises:
+            see `requets.Response.raise_for_status` except:
+
+                - [Errno 11004] getaddrinfo failed
+                - [Errno -2] Name or service not known
+                - [Errno 8] nodename nor servname
+
+        """
+        if isinstance(url, up.ParseResult):
+            url = up.urlunparse(url)
+        mp = None
+        title = ""
+        try:
+            title = self.title
+        except AttributeError:
+            pass
+        try:
+            mp = self.Session.get(url, **kwargs)
+            mp.raise_for_status()
+        except requests.ConnectionError as exc:
+            message = str(exc)
+            if 'Remote end closed connection without response' in message:
+                pass
+            elif ("[Errno 11004] getaddrinfo failed" in message
+                  or "[Errno -2] Name or service not known" in message
+                  or "[Errno 8] nodename nor servname " in message):
+                pass
+            else:
+                raise
+        return mp

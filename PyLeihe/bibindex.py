@@ -179,6 +179,24 @@ class PyLeiheNet(PyLeiheWeb):
                 return x
         return None
 
+    def getBib(self, name):
+        """
+        Searches in all `BundesLand` instances for the `PyLeihe.bibliography.Bibliography`
+        with the name and returns the first one.
+
+        Arguments:
+            name (str): name of the bib to search for
+
+        Returns:
+            * `PyLeihe.bibliography.Bibliography` first search result
+            * `None` if no one was found
+        """
+        for l in self.Laender:
+            b = l[name]
+            if b is not None:
+                return b
+        return None
+
     def reprJSON(self):
         """
         function returns a representation of the instance from JSON compliant data types

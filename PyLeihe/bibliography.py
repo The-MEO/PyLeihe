@@ -138,6 +138,22 @@ class Bibliography(PyLeiheWeb):
         bib.search_url = data["search_url"]
         return bib
 
+    @classmethod
+    def _grapSearchURL_PostFormURL(cls, mp):
+        """
+        Searches a html page for the link-url to an search.
+
+        Arguments:
+            mp (requests.Response): to search in
+
+        Returns:
+            str: with the destination url of the form
+        """
+        return cls.getPostFormURL(
+            mp.content,
+            curr_url=mp.url,
+            ContNode="input", ContNodeData={"id": "searchtext"})
+
     def _grapSearchURL_extendedSearch(self, mp):
         """
         Searches a html page for the link-url to an advanced search.
@@ -171,12 +187,28 @@ class Bibliography(PyLeiheWeb):
         a_search = self.searchNodeMultipleContain(mp.content, "a", mp.url)
         if a_search is not None:
             try_second_search = a_search.get('href')
-            mp = self.Session.get(try_second_search)
-            mp.raise_for_status()
-            url = self.getPostFormURL(
-                mp.content,
-                curr_url=mp.url,
-                ContNode="input", ContNodeData={"id": "searchtext"})
+            mp = self.simpleGET(try_second_search)
+            url = self._grapSearchURL_PostFormURL(mp)
+        return url
+
+    def _grapSearchURL_simplelink(self, mp):
+        """
+        Searches for a adress to the domain `onleihe.de`.
+
+        Arguments:
+            mp (requets.Respons): opened website to search
+
+        Returns:
+            * `None` if no url was found
+            * else `str` with the result url
+        """
+        url = None
+        a_search = self.searchNodeMultipleContain(
+            mp.content, "a", {"href": re.compile(r'.*onleihe[^\/]*\.de.*')})
+        if a_search is not None:
+            try_second_search = a_search.get('href')
+            mp = self.simpleGET(try_second_search)
+            url = self._grapSearchURL_PostFormURL(mp)
         return url
 
     def _grapSearchURL_loadData(self):
@@ -194,44 +226,37 @@ class Bibliography(PyLeiheWeb):
                 * [Errno -2] Name or service not known
                 * [Errno 8] nodename nor servname
         """
-        mp = None
-        try:
-            mp = self.Session.get(up.urlunparse(self.url))
-            mp.raise_for_status()
-        except requests.ConnectionError as exc:
-            message = str(exc)
-            if ("[Errno 11004] getaddrinfo failed" in message or
-                    "[Errno -2] Name or service not known" in message or
-                    "[Errno 8] nodename nor servname " in message):
-                return None
-            raise
-        return mp
+        return self.simpleGET(self.url)
 
-    def grapSearchURL(self):
+    def grapSearchURL(self, lvl=1):
         """
         Searches the library website for the endpoint (post target) of the
         search form.
 
         1. Loads the content of the website
         2. trys different methods to extract the post target
-            1. searches input field with id for simple search
-            2. searches for advanced search
-            3. searches link to different search page
-        3. stores the result in `search_url`
+            1. [LVL0] searches input field with id for simple search
+            2. [LVL1] searches for a link to `onleihe.de`
+            3. [LVL2] searches for advanced search
+            4. [LVL2] searches link to different search page
+        3. *stores the result in* `search_url`
+        Returns:
+            bool: status whether a post target url was found.
+
         """
         mp = self._grapSearchURL_loadData()
         if mp is None:
-            return
-        self.search_url = self.getPostFormURL(
-            mp.content, curr_url=mp.url,
-            ContNode="input", ContNodeData={"id": "searchtext"})
-        if self.search_url is None:
+            return False
+        self.search_url = self._grapSearchURL_PostFormURL(mp)
+        if self.search_url is None and lvl >= 1:
+            self.search_url = self._grapSearchURL_simplelink(mp)
+        if self.search_url is None and lvl >= 2:
             self.search_url = self._grapSearchURL_extendedSearch(mp)
-        if self.search_url is None:
+        if self.search_url is None and lvl >= 2:
             self.search_url = self._grapSearchURL_href_secondSearch(mp)
         if self.search_url is None:
-            print("No search-URL could be found for "
-                  + self.title + " on: " + mp.url)
+            return False
+        return True
 
     def SetSearchResultsPerPage(self, amount: int = 100, search_result_page=None):
         """

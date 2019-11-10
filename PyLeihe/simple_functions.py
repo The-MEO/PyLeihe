@@ -36,7 +36,6 @@ def correct_searchurls_land(land):
     elif land["libell-e"] is not None:
         land["libell-e"].search_url = "https://www2.onleihe.de/libell-e-nord/frontend/search,0-0-0-0-0-0-0-0-0-0-0.html"  # noqa: E501
     if land.name == "Badenwuerttemberg":
-        land.fix_searchurl("meine-medienwelt", "https://www1.onleihe.de/heilbronn/frontend/search,0-0-0-0-0-0-0-0-0-0-0.html")  # noqa: E501
         remove_baden = land["baden"]
         if remove_baden is not None:
             land.Bibliotheken.remove(remove_baden)
@@ -48,8 +47,6 @@ def correct_searchurls_land(land):
         land.fix_searchurl("stadtdo", "https://www2.onleihe.de/dortmund/frontend/search,0-0-0-0-0-0-0-0-0-0-0.html")  # noqa: E501
     elif land.name == "Sachsenanhalt":
         land.fix_searchurl("Sangerhausen", "https://biblio24.onleihe.de/verbund_sachsen_anhalt/frontend/welcome,51-0-0-100-0-0-1-0-0-0-0.html")  # noqa: E501
-    elif land.name == "Berlin":
-        land.fix_searchurl("voebb24", "https://voebb.onleihe.de/berlin/frontend/search,0-0-0-0-0-0-0-0-0-0-0.html")  # noqa: E501
     # pylint: enable=line-too-long
 
 
