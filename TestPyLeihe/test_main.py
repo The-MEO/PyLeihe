@@ -129,3 +129,16 @@ def test_dev_make(mock_run_console):
     a, _k = mock_run_console.call_args
     assert a[0][:3] == ["python3", "-m", "pdoc"], "check pdoc command"
     assert mock_run_console.call_count == 1
+
+
+@mock.patch('logging.basicConfig')
+def test_loglevel(mock_basicConfig):
+    """
+    checks the loglevel option
+    """
+    cmd = ["--log", "DEBUG"]
+    c = pylmain.main(cmd)
+    _a, k = mock_basicConfig.call_args
+    mock_basicConfig.assert_called_once()
+    assert c == 0, "should return the exit code"
+    assert k["level"] == 10

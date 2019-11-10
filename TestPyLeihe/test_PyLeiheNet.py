@@ -1,8 +1,8 @@
 """
 Testfunctins for  `PyLeiheNet` from `bibindex.py`
 """
-import pytest
 from unittest import mock
+import pytest
 import _paths  # pylint: disable=unused-import
 from PyLeihe.bibindex import PyLeiheNet
 

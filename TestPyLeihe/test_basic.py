@@ -48,6 +48,10 @@ def test_getURL():
                               {"ContNodeData": {"name": "test_input_2"}},
                               "toTest2.html"
                               ),
+                             (("post", "post"),
+                              {"ContNode": None, "ContNodeData": None},
+                              "toTest1.html"
+                              ),
                              (("post", "post"), {"ContNode": "h3"}, "toTest2.html"),
                              (("post", "post"), {"ContNode": "p"}, "toTest1.html"),
                              (("get", "post"), {"ContNode": "p"}, None),
