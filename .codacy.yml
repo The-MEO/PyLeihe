@@ -3,3 +3,5 @@ engines:
   bandit:
     exclude_paths:
       - 'TestPyLeihe/**'
+exclude_paths:
+  - 'TestPyLeihe/**'

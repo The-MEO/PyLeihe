@@ -14,3 +14,4 @@ coverage.xml
 
 # project specific
 /*.json
+logs/
