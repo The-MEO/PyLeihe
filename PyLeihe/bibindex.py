@@ -14,11 +14,11 @@ from .bibliography import Bibliography
 
 class BundesLand(PyLeiheWeb):
     """
-    Object to group bibliographies `Bibliography` (into their federal states).
+    Object to group bibliographies `PyLeihe.bibliography.Bibliography` (into their federal states).
 
     In addition to the functions for grouping, the class provides an
     abstraction of the individual federal states.
-    So they can be load with their corresponding `Bibliography`.
+    So they can be load with their corresponding `PyLeihe.bibliography.Bibliography`.
 
     """
     BASIC_URL = "index.php?id={}"
@@ -27,8 +27,8 @@ class BundesLand(PyLeiheWeb):
         """
         Arguments:
             lid: to `int`convertable object, as unique ID
-            name: `str` name of the group (federal state)
-            bibs: _optional_ `list[bibliography]` the initial elements of
+            name (str): name of the group (federal state)
+            bibs (list[bibliography]): _optional_ the initial elements of
                 the group
         """
         super().__init__()
@@ -44,7 +44,7 @@ class BundesLand(PyLeiheWeb):
         Arguments:
             key:
                 * `int` with element index
-                * `str` name of the `Bibliography` _case insensitive_
+                * `str` name of the `PyLeihe.bibliography.Bibliography` _case insensitive_
         """
         if isinstance(key, (int, slice)):
             return self.Bibliotheken[key]
@@ -55,7 +55,7 @@ class BundesLand(PyLeiheWeb):
 
     def loadBibURLs(self):
         """
-        Loads all `Bibliography`s from the website of the federal state.
+        Loads all `PyLeihe.bibliography.Bibliography`s from the website of the federal state.
 
         **Warning**
         Overrides the internal list with objects.
@@ -87,7 +87,7 @@ class BundesLand(PyLeiheWeb):
         For additional information see: `Bibliography.grapSearchURL()`
 
         Arguments:
-            newtitle: `bool` _optional_ whether new title names are to be
+            newtitle (bool): _optional_ whether new title names are to be
                 generated on the basis of the new available data
         """
         for bib in self.Bibliotheken:
@@ -110,10 +110,10 @@ class BundesLand(PyLeiheWeb):
         Creates a new instance from a url.
 
         Arguments:
-            url: `str` in the format `...id=ID#Name...`
+            url (str): in the format `...id=ID#Name...`
 
         Raises:
-            `ValueError` if the URL did not fulfill the search condition.
+            ValueError: if the URL did not fulfill the search condition.
         """
         m = re.search(r"id=(\d+)#([a-zA-Z]+)", url)
         if m is not None:
@@ -126,7 +126,7 @@ class BundesLand(PyLeiheWeb):
 
     def groupbytitle(self):
         """
-        Merges multiple list objects (`Bibliography`) by the same title name.
+        Merges multiple list objects (`PyLeihe.bibliography.Bibliography`) by the same title name.
         """
         dict_title = defaultdict(list)
         for bib in self.Bibliotheken:
@@ -220,8 +220,8 @@ class PyLeiheNet(PyLeiheWeb):
         If no data is passed, the `_loadJSONFile` with the filename parameter will be used.
 
         Arguments:
-            data: [optional] the representation as dict and lists
-            filename: [optional] the path to the json file containing the data
+            data (dict): _optional_ the representation as dict and lists
+            filename (str): _optional_ the path to the json file containing the data
         """
         pln = PyLeiheNet()
         if data is None:
@@ -235,8 +235,8 @@ class PyLeiheNet(PyLeiheWeb):
         Loads the federal states and the addresses of the corresponding libraries from the Internet.
 
         Arguments:
-            groupbytitle: [bool]
-            loadsearchURLs: [bool]
+            groupbytitle (bool): if true calls `BundesLand.groupbytitle()`
+            loadsearchURLs (bool): if true calls `BundesLand.loadsearchURLs()`
         """
         if not self.Laender:
             self.getBundesLaender()

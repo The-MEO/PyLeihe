@@ -12,7 +12,7 @@ def correct_search_urls(PyLN):
     for all libraries of the contained (federal) states
 
     Arguments:
-        PyLN: `PyLeiheNet` containing the countries to be corrected
+        PyLN (PyLeihe.bibindex.PyLeiheNet): containing the countries to be corrected
     """
     for land in PyLN.Laender:
         correct_searchurls_land(land)
@@ -28,7 +28,7 @@ def correct_searchurls_land(land):
     will need maintenance in the future if the URLs change.
 
     Argument:
-        land: `BundesLand` with libraries with search_urls to be corrected
+        land (PyLeihe.bibindex.BundesLand): with libraries with search_urls to be corrected
     """
     # pylint: disable=line-too-long
     if land["libell-e"] is not None and land.name in ("Badenwuerttemberg", "Rheinlandpfalz"):
@@ -55,13 +55,14 @@ def makejson(reload_data=False, filename="", to_filename=""):
     The aim of the function is to create a json file with all preprocessed data.
 
     Arguments:
-        reload_data: `bool` specifies whether the data should be loaded
+        reload_data (bool): specifies whether the data should be loaded
                     fresh from the website or from a local file.
-        filename: `str` path to the json file
+        filename (str): path to the json file
             from which the json data is imported if `reload_data` is `False`
-        to_filename: `str` path to the result json file - for further information see `toJSONFile()`
+        to_filename (str): path to the result json file - for further information see `toJSONFile()`
+
     Returns:
-        the saved `PyLeiheNet` instance
+        the saved `PyLeihe.bibindex.PyLeiheNet` instance
     """
     pln = PyLeiheNet()
     if reload_data:
@@ -89,13 +90,13 @@ def parallel_search_helper(search="", category=None):
     Help function that creates the search function when using multiple threads.
 
     Arguments:
-        search: `str` optional keyword to search for
+        search (str): _optional_ keyword to search for
                 which is passed to `Bibliography.search()`
-        search: `MediaType` optional media categorie to search for
+        search (PyLeihe.bibliography.MediaType): _optional_ media categorie to search for
                 which is passed to `Bibliography.search()`
 
-    Return:
-        Function `run` which can be called
+    Returns:
+        Function `run()` which can be called
     """
     def run(bib):
         """
@@ -116,13 +117,13 @@ def search_list(search="", category=None, use_json=True, jsonfile='', threads=4)
     """
 
     Arguments:
-        search: `str` keyword to search for in all PyLeiheNet
-        category: `MediaType`
-        use_json: `bool` whether pre-processed local data from a json file
+        search (str): keyword to search for in all PyLeiheNet
+        category (MediaType): mediatype filter
+        use_json (bool): whether pre-processed local data from a json file
                   of countries and libraries should be used
                   or everything should be downloaded on-the-fly from the Internet
-        jsonfile: `str` path to json file (used for `use_json = True`)
-        threads: `int` number of concurrent threads to be used for searching
+        jsonfile (str): path to json file (used for `use_json = True`)
+        threads (int): number of concurrent threads to be used for searching
     """
     pln = PyLeiheNet()
     if use_json:
@@ -154,7 +155,7 @@ def search_print(top=10, *args, **kwargs):  # pylint: disable=keyword-arg-before
         3. print the first `top` results to the console
 
     Arguments:
-        top: `int` optional limitation of the number of results (<1 for unlimited)
+        top (int): _optional_ limitation of the number of results (<1 for unlimited)
         args: passed to `search_list`
         kwargs: passed to `search_list`
     """

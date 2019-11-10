@@ -58,7 +58,7 @@ class PyLeiheWeb:
         thus including `reprJSON()`
 
         Arguments:
-            filename: `str`path to the file to write
+            filename (str): path to the file to write
         """
         if filename == "":
             filename = cls.__name__
@@ -89,7 +89,7 @@ class PyLeiheWeb:
         For contained instances of other classes,
         their respective conversion functions are called.
 
-        If no data is passed, the data is loaded by calling `_loadJSONFile()`.
+        If no data is passed, the data is loaded by calling `self._loadJSONFile()`.
 
         Arguments:
             data: _optional_ parsed json as dict with json comaptible
@@ -111,11 +111,11 @@ class PyLeiheWeb:
         with certain properties `ContNodeData`.
 
         Arguments:
-            content: `str` html content
-            Node: `str`name of the node
-            NodeAttr: `dict(str: str)` with the attributes of the nodes
-            ContNode: `str` optional addition node wich must be inside of `Node`
-            ContNodeData: `dict(str: str)` with the attributes of the `ContNode`
+            content (str):  html content
+            Node (str): name of the node
+            NodeAttr (dict[str: str]): with the attributes of the nodes
+            ContNode (str):  optional addition node wich must be inside of `Node`
+            ContNodeData (dict[str: str]): with the attributes of the `ContNode`
 
         Returns:
             First node that meets the conditions
@@ -126,7 +126,8 @@ class PyLeiheWeb:
         found_forms = len(forms)
         if found_forms == 0:
             return None
-        if found_forms == 1 and (ContNode == "" or ContNode is None):
+        if ((ContNode == "" or ContNode is None)
+                and (ContNodeData == "" or not ContNodeData)):
             return forms[0]
         try:
             return next(f for f in forms if f.find(ContNode, ContNodeData))
@@ -143,14 +144,14 @@ class PyLeiheWeb:
         a specific `ContNode`.
 
         Arguments:
-            content: `str` html content
+            content (str): html content
             curr_url: _optional_ address of the form,
                 if available this is combined with the target address
-            ContNode: `str` optional node wich must be inside of the form
-            ContNodeData: `dict(str: str)` with the attributes of the `ContNode`
+            ContNode (str): optional node wich must be inside of the form
+            ContNodeData (dict[str: str]): with the attributes of the `ContNode`
 
         Returns:
-            `str` with the destination url of the form
+            str: with the destination url of the form
         """
         form = cls.searchNodeMultipleContain(content,
                                              Node="form",
@@ -170,7 +171,7 @@ class PyLeiheWeb:
         Build a URL from the given schema, domain and target path on the server and return it.
 
         Arguments:
-            to: `str` or `list(str)` path of a destination address
+            to (str or list[str]): path of a destination address
 
         Returns:
             `str` with the compound url

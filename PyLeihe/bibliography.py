@@ -39,10 +39,10 @@ class Bibliography(PyLeiheWeb):
     def __init__(self, url, cities=None, session=None):
         """
         Arguments:
-            url: `str` URL to the website of the library with search field
-            cities: `list[str]` list of city names that are included in the
+            url (str): URL to the website of the library with search field
+            cities (list[str]): list of city names that are included in the
                 library association
-            session: `requests.session` set some session settings for
+            session (requests.session): set some session settings for
                 customized search
         """
         super().__init__(session)
@@ -161,7 +161,7 @@ class Bibliography(PyLeiheWeb):
         Searches a html page for the link-url to an advanced search.
 
         Arguments:
-            mp: `requests.Response` to search in
+            mp (requests.Response): to search in
 
         Returns:
             `None` if no url was found
@@ -182,6 +182,9 @@ class Bibliography(PyLeiheWeb):
         First the link to the search page is searched.
         This url is opened with the session and the address of the
         search endpoint (post target) is extracted from the page there.
+
+        Arguments:
+            mp (requets.Respons): opened website to search
 
         Returns:
             * `None` if no url was found
@@ -222,16 +225,12 @@ class Bibliography(PyLeiheWeb):
         """
         Loads the website from the library and returns the Response.
 
+        For further informations see: `PyLeiheWeb.simpleGET`
+
         Returns:
             * `None` if the data could not be loaded
-            * else `requets.Respons` with the page content in
-                `requets.Respons.content`
-
-        Raises:
-            see `requets.Response.raise_for_status` except:
-                * [Errno 11004] getaddrinfo failed
-                * [Errno -2] Name or service not known
-                * [Errno 8] nodename nor servname
+            * else `requets.Response` with the page content in
+                `requets.Response.content`
         """
         return self.simpleGET(self.url)
 
@@ -247,6 +246,10 @@ class Bibliography(PyLeiheWeb):
             3. [LVL2] searches for advanced search
             4. [LVL2] searches link to different search page
         3. *stores the result in* `search_url`
+
+        Arguments:
+            lvl (int): specifies the number of additional search methods.
+
         Returns:
             bool: status whether a post target url was found.
 
@@ -273,8 +276,8 @@ class Bibliography(PyLeiheWeb):
         Changes the amount of results per page on the server side.
 
         Arguments:
-            amount: _optional_ `int` maximum Amount of results on one page
-            search_result_page: _optional_ `requests.Response` result page from
+            amount (int): _optional_  maximum Amount of results on one page
+            search_result_page (requests.Response): _optional_  result page from
                 one page where the amount can be set.
                 The changed number is than stored in the session on server side.
 
@@ -300,8 +303,8 @@ class Bibliography(PyLeiheWeb):
             SearchRequest: `requests.Response` the result page of a search
 
         Returns:
-            `int` number of results
-            -1 if regex failed
+                * -1 if regex failed
+                * int: number of results
         """
         m = re.search(
             r"Suchergebnis .* ([\d.]+|keine)[^0-9.]*[Tt]reffer.*", SearchRequest.text)
@@ -318,14 +321,18 @@ class Bibliography(PyLeiheWeb):
         Performs a search query to a library.
 
         Arguments:
-            text: `str` keyword to search for
-            kategorie: _optional_ `MediaType` the media category to be searched
-            savefile: _optional_ `bool` if the result page of the search should
+            text (str): keyword to search for
+            kategorie (MediaType, optional):  the media category to be searched
+            savefile (bool, optional): if the result page of the search should
                 be stored on the local disc. The file name is taken from the
                 title of the library.
 
         Returns:
-            `int` number of results
+            int: number of results or negative for error codes:
+            - `-1` regex failed
+            - `-2`
+            - `-3` no search url available
+            - `-4` ConnectionError
         """
         if kategorie is None:
             kategorie = MediaType.alleMedien
