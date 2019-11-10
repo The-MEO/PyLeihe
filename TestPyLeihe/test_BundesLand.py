@@ -43,18 +43,18 @@ def test_loadsearchURLs():
     B2 = mock.Mock(title="B2", search_url="url")
     land = BundesLand(0, "", bibs=[B1, B2])
     land.loadsearchURLs(newtitle=False, force=False)
-    assert B1.grapSearchURL.call_count == 1
+    assert B1.grepSearchURL.call_count == 1
     assert B1.generateTitle.call_count == 0
-    assert B2.grapSearchURL.call_count == 0
+    assert B2.grepSearchURL.call_count == 0
     assert B2.generateTitle.call_count == 0
 
     B1 = mock.Mock(title="B1", search_url=None)
     B2 = mock.Mock(title="B2", search_url="url")
     land = BundesLand(0, "", bibs=[B1, B2])
     land.loadsearchURLs(newtitle=True, force=True)
-    assert B1.grapSearchURL.call_count == 1
+    assert B1.grepSearchURL.call_count == 1
     assert B1.generateTitle.call_count == 1
-    assert B2.grapSearchURL.call_count == 1
+    assert B2.grepSearchURL.call_count == 1
     assert B2.generateTitle.call_count == 1
 
 
@@ -79,7 +79,8 @@ def test_from_url():
     """
     BLU = namedtuple('BL_Url', ['url', 'id', 'name'])
     to_test = [BLU("/index.php?id=43#badenwuerttemberg", 43, "badenwuerttemberg"),
-               BLU("https://www.onleihe.net/index.php?id=35#mecklenburgvorpommern", 35, "mecklenburgvorpommern")]
+               BLU("https://www.onleihe.net/index.php?id=35#mecklenburgvorpommern",
+                   35, "mecklenburgvorpommern")]
     for x in to_test:
         BL = BundesLand.from_url(x.url)
         assert BL.lid == x.id

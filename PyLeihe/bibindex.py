@@ -84,7 +84,7 @@ class BundesLand(PyLeiheWeb):
         """
         Loads all search urls for the containing elements.
 
-        For additional information see: `Bibliography.grapSearchURL()`
+        For additional information see: `Bibliography.grepSearchURL()`
 
         Arguments:
             newtitle (bool): _optional_ whether new title names are to be
@@ -92,7 +92,7 @@ class BundesLand(PyLeiheWeb):
         """
         for bib in self.Bibliotheken:
             if force or bib.search_url is None:
-                bib.grapSearchURL()
+                bib.grepSearchURL()
             if newtitle:
                 bib.generateTitle()
 

@@ -141,7 +141,7 @@ class Bibliography(PyLeiheWeb):
         return bib
 
     @classmethod
-    def _grapSearchURL_PostFormURL(cls, mp):
+    def _grepSearchURL_PostFormURL(cls, mp):
         """
         Searches a html page for the link-url to an search.
 
@@ -156,7 +156,7 @@ class Bibliography(PyLeiheWeb):
             curr_url=mp.url,
             ContNode="input", ContNodeData={"id": "searchtext"})
 
-    def _grapSearchURL_extendedSearch(self, mp):
+    def _grepSearchURL_extendedSearch(self, mp):
         """
         Searches a html page for the link-url to an advanced search.
 
@@ -175,7 +175,7 @@ class Bibliography(PyLeiheWeb):
         logging.debug("extendedSearch no match")
         return None
 
-    def _grapSearchURL_href_secondSearch(self, mp):
+    def _grepSearchURL_href_secondSearch(self, mp):
         """
         Searches for the address of the search form by following the link.
 
@@ -196,12 +196,12 @@ class Bibliography(PyLeiheWeb):
             logging.debug("secondSearch hit")
             try_second_search = a_search.get('href')
             mp = self.simpleGET(try_second_search)
-            url = self._grapSearchURL_PostFormURL(mp)
+            url = self._grepSearchURL_PostFormURL(mp)
         else:
             logging.debug("secondSearch no match")
         return url
 
-    def _grapSearchURL_simplelink(self, mp):
+    def _grepSearchURL_simplelink(self, mp):
         """
         Searches for a adress to the domain `onleihe.de`.
 
@@ -218,10 +218,10 @@ class Bibliography(PyLeiheWeb):
         if a_search is not None:
             try_second_search = a_search.get('href')
             mp = self.simpleGET(try_second_search)
-            url = self._grapSearchURL_PostFormURL(mp)
+            url = self._grepSearchURL_PostFormURL(mp)
         return url
 
-    def _grapSearchURL_loadData(self):
+    def _grepSearchURL_loadData(self):
         """
         Loads the website from the library and returns the Response.
 
@@ -234,7 +234,7 @@ class Bibliography(PyLeiheWeb):
         """
         return self.simpleGET(self.url)
 
-    def grapSearchURL(self, lvl=1):
+    def grepSearchURL(self, lvl=1):
         """
         Searches the library website for the endpoint (post target) of the
         search form.
@@ -254,17 +254,17 @@ class Bibliography(PyLeiheWeb):
             bool: status whether a post target url was found.
 
         """
-        mp = self._grapSearchURL_loadData()
+        mp = self._grepSearchURL_loadData()
         if mp is None:
             return False
-        self.search_url = self._grapSearchURL_PostFormURL(mp)
+        self.search_url = self._grepSearchURL_PostFormURL(mp)
         if self.search_url is None and lvl >= 1:
             logging.info("[%s] No search form found on the start page", str(self))
-            self.search_url = self._grapSearchURL_simplelink(mp)
+            self.search_url = self._grepSearchURL_simplelink(mp)
         if self.search_url is None and lvl >= 2:
-            self.search_url = self._grapSearchURL_extendedSearch(mp)
+            self.search_url = self._grepSearchURL_extendedSearch(mp)
         if self.search_url is None and lvl >= 2:
-            self.search_url = self._grapSearchURL_href_secondSearch(mp)
+            self.search_url = self._grepSearchURL_href_secondSearch(mp)
         if self.search_url is None:
             logging.warning("[%s] No search-URL could be found on '%s' ",
                             str(self), mp.url)
@@ -338,7 +338,7 @@ class Bibliography(PyLeiheWeb):
             kategorie = MediaType.alleMedien
         # get MainPage
         if self.search_url is None:
-            self.grapSearchURL()
+            self.grepSearchURL()
         if self.search_url is None:
             logging.info("[%s][search: %s] No search_url available", self, text)
             return -3
