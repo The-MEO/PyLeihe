@@ -5,6 +5,7 @@ Also contains the enumeration for the diferent mediatypes.
 """
 from enum import Enum
 import re
+import logging
 import urllib.parse as up
 import requests
 
@@ -48,6 +49,7 @@ class Bibliography(PyLeiheWeb):
         if not url:
             url = "NoURL"
         if "http//" in url:
+            logging.info("removed wrong 'http//' from '%s'", url)
             url = url.replace("http//", "")
         self.url_up = url
         self.url = up.urlparse(url)
@@ -168,7 +170,9 @@ class Bibliography(PyLeiheWeb):
         a_search = self.searchNodeMultipleContain(
             mp.content, "a", {'title': 'Erweiterte Suche'})
         if a_search is not None:
+            logging.debug("extendedSearch hit")
             return a_search.get('href')
+        logging.debug("extendedSearch no match")
         return None
 
     def _grapSearchURL_href_secondSearch(self, mp):
@@ -186,9 +190,12 @@ class Bibliography(PyLeiheWeb):
         url = None
         a_search = self.searchNodeMultipleContain(mp.content, "a", mp.url)
         if a_search is not None:
+            logging.debug("secondSearch hit")
             try_second_search = a_search.get('href')
             mp = self.simpleGET(try_second_search)
             url = self._grapSearchURL_PostFormURL(mp)
+        else:
+            logging.debug("secondSearch no match")
         return url
 
     def _grapSearchURL_simplelink(self, mp):
@@ -249,12 +256,15 @@ class Bibliography(PyLeiheWeb):
             return False
         self.search_url = self._grapSearchURL_PostFormURL(mp)
         if self.search_url is None and lvl >= 1:
+            logging.info("[%s] No search form found on the start page", str(self))
             self.search_url = self._grapSearchURL_simplelink(mp)
         if self.search_url is None and lvl >= 2:
             self.search_url = self._grapSearchURL_extendedSearch(mp)
         if self.search_url is None and lvl >= 2:
             self.search_url = self._grapSearchURL_href_secondSearch(mp)
         if self.search_url is None:
+            logging.warning("[%s] No search-URL could be found on '%s' ",
+                            str(self), mp.url)
             return False
         return True
 
@@ -323,6 +333,7 @@ class Bibliography(PyLeiheWeb):
         if self.search_url is None:
             self.grapSearchURL()
         if self.search_url is None:
+            logging.info("[%s][search: %s] No search_url available", self, text)
             return -3
         try:
             SearchRequest = self.Session.post(self.search_url,
@@ -335,9 +346,12 @@ class Bibliography(PyLeiheWeb):
             SearchRequest.raise_for_status()
             Treffer = self.parse_results(SearchRequest)
         except requests.exceptions.ConnectionError:
+            logging.info("[%s][search: %s] ConnectionError - ignored", self, text)
             return -4
 
         if Treffer == -1:
+            logging.info("[%s][search: %s] regex for result counting failed. Try second methode",
+                         self, text)
             SearchRequest = self.Session.post(self.search_url,
                                               data={'pMediaType': kategorie.value,
                                                     'pText': text,

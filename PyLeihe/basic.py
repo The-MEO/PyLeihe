@@ -4,6 +4,7 @@ and basic methods to all child classes
 """
 import json
 import urllib.parse as up
+import logging
 import requests
 from bs4 import BeautifulSoup
 
@@ -213,11 +214,12 @@ class PyLeiheWeb:
         except requests.ConnectionError as exc:
             message = str(exc)
             if 'Remote end closed connection without response' in message:
-                pass
+                logging.warning("[{}] Remote end closed connection: {}".format(title, url))
             elif ("[Errno 11004] getaddrinfo failed" in message
                   or "[Errno -2] Name or service not known" in message
                   or "[Errno 8] nodename nor servname " in message):
-                pass
+                logging.warning("[%s] Hostname can't be resolved: %s",
+                                str(self), url, exc_info=False)
             else:
                 raise
         return mp

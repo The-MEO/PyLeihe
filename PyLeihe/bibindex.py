@@ -4,6 +4,7 @@ Contains container objects to group the libraries and bibliographies logically
 """
 from collections import defaultdict
 import re
+import logging
 import requests
 from bs4 import BeautifulSoup
 
@@ -117,6 +118,7 @@ class BundesLand(PyLeiheWeb):
         m = re.search(r"id=(\d+)#([a-zA-Z]+)", url)
         if m is not None:
             return BundesLand(m.group(1), m.group(2))
+        logging.error("Can't create BundesLand from url: '%s'", url)
         raise ValueError(url)
 
     def __repr__(self):

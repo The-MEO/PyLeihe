@@ -9,6 +9,8 @@ Help is displayed with the `-h` parameter:
 import sys
 import subprocess  # nosec
 import argparse
+import logging
+import logging.handlers
 from . import PyLeiheNet, MediaType  # pylint: disable=unused-import
 from .simple_functions import makejson, search_print
 
@@ -59,6 +61,7 @@ def parseargs(args):
     parser.add_argument('--make', help="[only for Developer] do some build tasks", action='store_true')  # noqa: E501
     parser.add_argument('--test', help="[only for Developer] do some test tasks", action='store_true')  # noqa: E501
     parser.add_argument('--version', action='version', version='%(prog)s 0.1')  # noqa: E501
+    parser.add_argument("-l", "--log", dest="logLevel", choices=['DEBUG', 'INFO', 'WARNING', 'ERROR', 'CRITICAL'], help="Set the logging level")  # noqa: E501
     parsed_args = parser.parse_args(args)  # noqa: E501
     # pylint: enable=line-too-long
     # print(parsed_args)
@@ -93,6 +96,17 @@ def main(args):
 
     """
     parsed_args = parseargs(args)
+    if parsed_args.logLevel:
+        logPath = "logs"
+        fileName = "main"
+        basic_format = r"%(asctime)s [%(threadName)-12.12s][%(levelname)-8.8s]  %(message)s"
+        logging.basicConfig(level=getattr(logging, parsed_args.logLevel),
+                            format=basic_format,
+                            handlers=[
+                                logging.StreamHandler(),
+                                logging.handlers.RotatingFileHandler(
+                                    "{0}/{1}.log".format(logPath, fileName), backupCount=3)]
+                            )
     if parsed_args.makejson:
         makejson(parsed_args.loadonline, parsed_args.jsonfile)
     if parsed_args.search is not None:
