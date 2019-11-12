@@ -122,7 +122,7 @@ class Bibliography(PyLeiheWeb):
         return jdict
 
     @classmethod
-    def loadFromJSON(cls, data=None):
+    def loadFromJSON(cls, data=None, filename=None):
         """
         Generates a new instance based on JSON data.
 
@@ -130,12 +130,13 @@ class Bibliography(PyLeiheWeb):
             data: _optional_ parsed json as dict with json comaptible
                 python objects
                 *if None* `_loadJSONFile` is called and data is loaded from disk
+            filename (str): _optional_ the path to the json file containing the data
 
         Returns:
             new instance
         """
         if data is None:
-            data = cls._loadJSONFile()
+            data = cls._loadJSONFile(filename)
         bib = Bibliography(data["url"], cities=data["cities"])
         bib.search_url = data["search_url"]
         return bib

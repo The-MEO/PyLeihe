@@ -147,9 +147,9 @@ class BundesLand(PyLeiheWeb):
                 "bibliotheken": {b.title: b.reprJSON() for b in self.Bibliotheken}}
 
     @classmethod
-    def loadFromJSON(cls, data=None):
+    def loadFromJSON(cls, data=None, filename=None):
         if data is None:
-            data = cls._loadJSONFile()
+            data = cls._loadJSONFile(filename)
         bl = BundesLand(data["id"], data["name"])
         bl.Bibliotheken = [Bibliography.loadFromJSON(
             b) for b in data["bibliotheken"].values()]

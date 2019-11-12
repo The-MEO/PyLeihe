@@ -81,7 +81,7 @@ class PyLeiheWeb:
         return data
 
     @classmethod
-    def loadFromJSON(cls, data=None):
+    def loadFromJSON(cls, data=None, filename=""):
         """
         Converts a typical json representation consisting of lists/dicts into
         an instance.
@@ -89,12 +89,14 @@ class PyLeiheWeb:
         For contained instances of other classes,
         their respective conversion functions are called.
 
-        If no data is passed, the data is loaded by calling `self._loadJSONFile()`.
+        If no data is passed, the data is loaded by calling
+        `self._loadJSONFile(filename)`.
 
         Arguments:
-            data: _optional_ parsed json as dict with json comaptible
+            data (dict, list): _optional_ parsed json as dict with json comaptible
                 python objects
                 *if None* `_loadJSONFile` is called and data is loaded from disk
+            filename (str): _optional_ the path to the json file containing the data
 
         Returns:
             new instance
