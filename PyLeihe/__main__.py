@@ -7,6 +7,7 @@ Help is displayed with the `-h` parameter:
     ```
 """
 import sys
+import os
 import subprocess  # nosec
 import argparse
 import logging
@@ -100,6 +101,10 @@ def main(args):
         logPath = "logs"
         fileName = "main"
         basic_format = r"%(asctime)s [%(threadName)-12.12s][%(levelname)-8.8s]  %(message)s"
+        if not os.path.isdir(logPath):
+            logging.warning("Creating the destination folder (%s) "
+                            "for saving the log files - did not exist yet.", logPath)
+            os.makedirs(logPath)
         logging.basicConfig(level=getattr(logging, parsed_args.logLevel),
                             format=basic_format,
                             handlers=[
