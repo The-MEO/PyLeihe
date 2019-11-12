@@ -3,6 +3,7 @@ Testfunctins for `BundesLand` from `bibindex.py`
 """
 from collections import namedtuple
 from unittest import mock
+import logging
 import _paths  # pylint: disable=unused-import
 from PyLeihe.bibindex import BundesLand
 
@@ -73,7 +74,7 @@ def test_fix_searchurl():
     assert B2.search_url is None
 
 
-def test_from_url():
+def test_from_url(caplog):
     """
     Test for `BundesLand.from_url`
     """
@@ -93,6 +94,7 @@ def test_from_url():
         except ValueError:
             raised_value += 1
     assert raised_value == 3
+    assert len([x for x in caplog.record_tuples if x[1] == logging.ERROR]) == 3
 
 
 def test_from_groupbytitle():

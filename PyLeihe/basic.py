@@ -217,7 +217,7 @@ class PyLeiheWeb:
         except requests.ConnectionError as exc:
             message = str(exc)
             if 'Remote end closed connection without response' in message:
-                logging.warning("[{}] Remote end closed connection: {}".format(title, url))
+                logging.warning("[%s] Remote end closed connection: %s", title, url)
             elif ("[Errno 11004] getaddrinfo failed" in message
                   or "[Errno -2] Name or service not known" in message
                   or "[Errno 8] nodename nor servname " in message):

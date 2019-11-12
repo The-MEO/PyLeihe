@@ -103,21 +103,33 @@ def test_parseargs():
 
 
 @mock.patch('PyLeihe.__main__.subprocess.Popen')
-def test_run_console(mock_popen):
+def test_run_console(mock_popen, capsys):
     """
     Üper checks the functionality of the `run_console` function
     """
     instance = mock_popen.return_value
     instance.returncode = 0
 
+    # first command with ok
     cmd = ["command", "param1", "value"]
     c = pylmain.run_console(cmd)
     a, _k = mock_popen.call_args
     assert a[0] == cmd, "command should be looped through"
     assert c == 0, "should return the exit code"
+
+    captured = capsys.readouterr()
+    assert "OK" in captured.out
+
+    # second command with failure
     instance.returncode = 1
+    mock_stds = ["mock_STDOUT", "mock_STDERR"]
+    mock_popen.return_value.communicate.return_value = mock_stds
     c = pylmain.run_console(["command_2", "param2", "value2"])
     assert c == 1, "should return the exit code"
+    captured = capsys.readouterr()
+    assert not "OK" in captured.out
+    assert mock_stds[0] in captured.out
+    assert mock_stds[1] in captured.out
 
 
 @mock.patch('PyLeihe.__main__.run_console')
@@ -131,10 +143,11 @@ def test_dev_make(mock_run_console):
     assert mock_run_console.call_count == 1
 
 
+@mock.patch('os.makedirs')
 @mock.patch('os.path.isdir')
 @mock.patch('logging.handlers.RotatingFileHandler')
 @mock.patch('logging.basicConfig')
-def test_loglevel(mock_basicConfig, mock_RotatingFileHandler, mock_isdir):
+def test_loglevel(mock_basicConfig, mock_RotatingFileHandler, mock_isdir, mock_makedirs):
     """
     checks the loglevel option
     """
@@ -151,3 +164,7 @@ def test_loglevel(mock_basicConfig, mock_RotatingFileHandler, mock_isdir):
         params_rfh, _ = mock_RotatingFileHandler.call_args
         assert params_isdir[0] in params_rfh[0], "isdir check should " \
             "correspond to RotatingFileHandler target"
+    # Test automatic dir creation
+    mock_isdir.return_value = False
+    c = pylmain.main(cmd)
+    mock_makedirs.assert_called_once_with(params_isdir[0])

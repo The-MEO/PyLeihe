@@ -163,3 +163,45 @@ def test_grepSearchURL_basic(mock_PostFormURL, mock_loadData):
     assert bib.search_url == "url"
     mock_loadData.assert_called_once()
     mock_PostFormURL.assert_called_once_with(mock_loadData.return_value)
+
+
+@mock.patch('PyLeihe.bibliography.Bibliography.simpleGET')
+def test_grepSearchURL_loadData(mock_simpleGET):
+    """
+    Test for `Bibliography._grepSearchURL_loadData` to check the call of `simpleGET`.
+    """
+    url = "test.url/target"
+    bib = Bibliography(url)
+    assert bib._grepSearchURL_loadData() == mock_simpleGET.return_value
+    mock_simpleGET.assert_called_once_with(bib.url)
+
+
+@mock.patch('PyLeihe.bibliography.Bibliography._grepSearchURL_PostFormURL')
+@mock.patch('PyLeihe.bibliography.Bibliography.simpleGET')
+def test_grepSearchURL_simplelink(mock_simpleGET, mock_PostFormURL):
+    """
+    Test for `Bibliography._grepSearchURL_loadData` with `Heilbronn`as real example.
+
+    Didn't mock `self.searchNodeMultipleContain` and test if the method works
+    as expected - how it extract the information doesn't matter.
+    Only mock additional web serching.
+    """
+    url = "test.url/target"
+    bib = Bibliography(url)
+    mp = mock.Mock()
+    mp.content = """
+    <p><a title="" href="https://web-opac.kivbf.de/neckarwestheim/index.asp" target="_blank">Direkt zum Medien-Katalog</a>
+    <b><br><br></b>
+    <a title="" href="http://www.onleihe-hn.de" target="_blank">Direkt zur Onleihe</a>
+    <b> </b></p><br>
+    <a class="nav" href="./medien/onleihe-e-books/index.html">Onleihe E-Books</a><br>
+    """
+    assert bib._grepSearchURL_simplelink(mp) == mock_PostFormURL.return_value
+
+    # Test Case: no url to grep
+    mp.content = r'<a class="nav" href="./medien/onleihe-e-books/index.html">Onleihe E-Books</a>'
+    assert bib._grepSearchURL_simplelink(mp) is None
+
+    # the mocks should only be called in the first case.
+    mock_simpleGET.assert_called_once_with("http://www.onleihe-hn.de")
+    mock_PostFormURL.assert_called_once_with(mock_simpleGET.return_value)
