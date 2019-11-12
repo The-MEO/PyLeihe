@@ -1,0 +1,22 @@
+codecov:
+  max_report_age: off
+  ci:
+    - tools.taskcluster.net
+
+coverage:
+  precision: 2
+  round: down
+  range: "50...100"
+  status:
+    project: yes
+    patch:
+      default:
+        enabled: yes
+        if_not_found: success
+        only_pulls: true
+    changes:
+      default:
+        enabled: yes
+        if_not_found: success
+        only_pulls: true
+
