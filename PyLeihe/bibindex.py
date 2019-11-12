@@ -5,7 +5,6 @@ Contains container objects to group the libraries and bibliographies logically
 from collections import defaultdict
 import re
 import logging
-import requests
 from bs4 import BeautifulSoup
 
 from .basic import PyLeiheWeb
@@ -61,8 +60,7 @@ class BundesLand(PyLeiheWeb):
         Overrides the internal list with objects.
         """
         uebersicht = PyLeiheNet.getURL(self.BASIC_URL.format(self.lid))
-        r = requests.get(uebersicht)
-        r.raise_for_status()
+        r = self.simpleGET(uebersicht)
         soup = BeautifulSoup(r.content, features="html.parser")
         links = soup.find('table', {"class": "contenttable"}).find_all(
             'a', attrs={'target': '_blank'})
@@ -253,10 +251,10 @@ class PyLeiheNet(PyLeiheWeb):
         Loads the federal states and their urls from the Internet.
         """
         # load data from internet
-        germany = PyLeiheNet.getURL(PyLeiheNet.URL_Deutschland)
-        r = requests.get(germany)
-        r.raise_for_status()
+        germany = self.getURL(self.URL_Deutschland)
+        r = self.simpleGET(germany)
         # analyze html
         soup = BeautifulSoup(r.content, features="html.parser")
         areas = soup.find_all('area', attrs={'alt': 'Zum Wunschformular'})
-        self.Laender = [BundesLand.from_url(a['href']) for a in areas]
+        unique_urls = set([a['href'] for a in areas])
+        self.Laender = [BundesLand.from_url(a) for a in unique_urls]
