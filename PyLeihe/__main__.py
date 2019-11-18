@@ -100,7 +100,8 @@ def main(args):
     if parsed_args.logLevel:
         logPath = "logs"
         fileName = "main"
-        basic_format = r"%(asctime)s [%(threadName)-12.12s][%(levelname)-8.8s]  %(message)s"
+        basic_format = r"%(asctime)s [%(levelname)-8.8s][%(threadName)-10.10s]" \
+            r"%(funcName)10s(): %(message)s"
         if not os.path.isdir(logPath):
             logging.warning("Creating the destination folder (%s) "
                             "for saving the log files - did not exist yet.", logPath)
