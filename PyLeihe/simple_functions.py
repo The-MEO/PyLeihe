@@ -127,7 +127,7 @@ def search_list(search="", category=None, use_json=True, jsonfile='', threads=4)
     """
     pln = PyLeiheNet()
     if use_json:
-        pln.loadFromJSON(filename=jsonfile)
+        pln = pln.loadFromJSON(filename=jsonfile)
     else:
         pln.getBundesLaender()
         pln.loadallBundesLaender(groupbytitle=True, loadsearchURLs=False)
