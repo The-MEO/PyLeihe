@@ -49,8 +49,7 @@ class PyLeiheWeb:
         """
         return json.dumps(self.reprJSON())
 
-    @classmethod
-    def toJSONFile(cls, filename=""):
+    def toJSONFile(self, filename=""):
         """
         Saves the json representation as a file
 
@@ -61,9 +60,9 @@ class PyLeiheWeb:
             filename (str): path to the file to write
         """
         if filename == "":
-            filename = cls.__name__
+            filename = self.__class__.__name__
         with open('{}.json'.format(filename), 'w') as f:
-            json.dump(cls.reprJSON(), f, sort_keys=False, indent=4)
+            json.dump(self.reprJSON(), f, sort_keys=False, indent=4)
 
     @classmethod
     def _loadJSONFile(cls, filename=""):
@@ -135,7 +134,6 @@ class PyLeiheWeb:
             return next(f for f in forms if f.find(ContNode, ContNodeData))
         except StopIteration:
             return None
-        return None
 
     @classmethod
     def getPostFormURL(cls, content, ContNode="", curr_url=None, ContNodeData=None):
@@ -185,10 +183,27 @@ class PyLeiheWeb:
     def simpleGET(self, url, **kwargs):
         """
         Simple function to load one URL with GET.
+        For detailed informations, see `simpleSession()`
+        """
+        return self.simpleSession(url=url, method="get", **kwargs)
+
+    def _get_title(self):
+        title = ""
+        try:
+            title = self.title
+        except AttributeError:
+            pass
+        return title
+
+    def simpleSession(self, url, method="POST", retry=1, **kwargs):
+        """
+        Simple function to load one URL with GET or POST.
 
         Arguments:
             url (str or up.ParseResult): with the destination adress
-            **kwargs: additional configuration for `request.Session.get`
+            method (str): http method to acces the url,
+                          currently supported: `GET` and `POST`
+            **kwargs: additional configuration for `request.Session.get` or `post`
 
         Returns:
             * `None` if the data could not be loaded
@@ -203,21 +218,27 @@ class PyLeiheWeb:
                 - [Errno 8] nodename nor servname
 
         """
+        mp = None
+        # prevent recursive crash
+        if retry < 0:
+            return None
+        method = method.upper()
+        # unparse url if necessary
         if isinstance(url, up.ParseResult):
             url = up.urlunparse(url)
-        mp = None
-        title = ""
+        # try requests and capture ConnectionError's
         try:
-            title = self.title
-        except AttributeError:
-            pass
-        try:
-            mp = self.Session.get(url, **kwargs)
+            mp = self.Session.request(method, url, **kwargs)
             mp.raise_for_status()
         except requests.ConnectionError as exc:
             message = str(exc)
+            # reset mp return value
+            mp = None
             if 'Remote end closed connection without response' in message:
-                logging.warning("[%s] Remote end closed connection: %s", title, url)
+                logging.warning("[%s] Remote end closed connection: %s", self._get_title(), url)
+                if retry > 0:
+                    logging.info("Try it again (retry %i)", retry)
+                    mp = self.simpleSession(url, method=method, retry=retry - 1, **kwargs)
             elif ("[Errno 11004] getaddrinfo failed" in message
                   or "[Errno -2] Name or service not known" in message
                   or "[Errno 8] nodename nor servname " in message):
