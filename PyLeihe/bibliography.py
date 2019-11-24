@@ -7,7 +7,6 @@ from enum import Enum
 import re
 import logging
 import urllib.parse as up
-import requests
 
 from .basic import PyLeiheWeb
 
@@ -317,6 +316,39 @@ class Bibliography(PyLeiheWeb):
                 Treffer = int(m.group(1).replace(".", ""))
         return Treffer
 
+    def _postSearchParse(self, cmd_id, text: str, kategorie: MediaType, savefile=False):
+        """
+        Executes a http request to the web search to the library.
+
+        Arguments:
+            cmd_id (int): Parameter for the search method: `703` for simple and
+                `701`for extended search
+            text (str): keyword to search for
+            kategorie (MediaType, optional):  the media category to be searched
+            savefile (bool, optional): if the result page of the search should
+                be stored on the local disc. The file name is taken from the
+                title of the library.
+        Returns:
+            None: if ConnectionError occurs, see `PyLeiheWeb.simpleSession`
+            int: number of results, see `Bibliography.parse_results`
+            -1: result could not be parsed
+        """
+        SearchRequest = self.simpleSession(self.search_url,
+                                           data={'pMediaType': kategorie.value,
+                                                 'pText': text,
+                                                 "Suchen": "Suche",
+                                                 "cmdId": cmd_id,
+                                                 'sk': 1000,
+                                                 'pPageLimit': 100})
+        if SearchRequest is None:
+            return None
+        Treffer = self.parse_results(SearchRequest)
+        if savefile or (Treffer == -1 and logging.getLogger().isEnabledFor(logging.DEBUG)):
+            f = open("{0}_{1}.html".format(self.title, cmd_id), 'wb')
+            f.write(SearchRequest.content)
+            f.close()
+        return Treffer
+
     def search(self, text: str, kategorie: MediaType = None, savefile=False):
         """
         Performs a search query to a library.
@@ -343,37 +375,16 @@ class Bibliography(PyLeiheWeb):
         if self.search_url is None:
             logging.info("[%s][search: %s] No search_url available", self, text)
             return -3
-        try:
-            SearchRequest = self.Session.post(self.search_url,
-                                              data={'pMediaType': kategorie.value,
-                                                    'pText': text,
-                                                    "Suchen": "Suche",
-                                                    "cmdId": 703,
-                                                    'sk': 1000,
-                                                    'pPageLimit': 100})
-            SearchRequest.raise_for_status()
-            Treffer = self.parse_results(SearchRequest)
-        except requests.exceptions.ConnectionError:
-            logging.info("[%s][search: %s] ConnectionError - ignored", self, text)
-            return -4
 
+        Treffer = self._postSearchParse(703, text, kategorie, savefile)
+        if Treffer is None:
+            return -4
         if Treffer == -1:
-            logging.info("[%s][search: %s] regex for result counting failed. Try second methode",
+            logging.info("[%s][search: %s] regex for result counting failed."
+                         "Try second methode with cmdId for extended search",
                          self, text)
-            SearchRequest = self.Session.post(self.search_url,
-                                              data={'pMediaType': kategorie.value,
-                                                    'pText': text,
-                                                    "Suchen": "Suchen",
-                                                    "cmdId": 701,
-                                                    'sk': 1000,
-                                                    'pPageLimit': 100})
-            Treffer = self.parse_results(SearchRequest)
-            # print(self.title + ": Suchen")
+
+            Treffer = self._postSearchParse(701, text, kategorie, savefile)
 
         self.LastSearch = Treffer
-        if savefile:
-            f = open(self.title + ".html", 'wb')
-            f.write(SearchRequest.content)
-            f.close()
-        # print("[{0}] Treffer: {1}".format(self.title, Treffer))
         return Treffer
