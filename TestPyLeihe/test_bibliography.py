@@ -95,6 +95,7 @@ def test_generateTitleByUrl():
 def test_grepSearchURL_searchmethods(mock_secondSearch, mock_extendedSearch,
                                      mock_simplelink, mock_PostFormURL,
                                      mock_loadData,
+                                     caplog,
                                      level, NoneReturn, called, result):
     """
     Test for `Bibliography.grepSearchURL` to validate the behaviour of the used methods
@@ -135,6 +136,11 @@ def test_grepSearchURL_searchmethods(mock_secondSearch, mock_extendedSearch,
             mocks[i].assert_called_once_with(mock_loadData.return_value)
         else:
             mocks[i].assert_not_called()
+    # check logs and clear them if all are expected
+    if not result:
+        assert "No search-URL could be found on" in caplog.text
+        if len(caplog.record_tuples) == 1:
+            caplog.clear()
 
 
 @mock.patch('PyLeihe.bibliography.Bibliography._grepSearchURL_loadData')
@@ -159,7 +165,7 @@ def test_grepSearchURL_basic(mock_PostFormURL, mock_loadData):
     # check if first grap works
     mock_loadData.return_value = mock.Mock(name="requests.Sessions")
     mock_PostFormURL.return_value = "url"
-    assert bib.grepSearchURL() == True, "url should have been set"
+    assert bib.grepSearchURL(), "url should have been set"
     assert bib.search_url == "url"
     mock_loadData.assert_called_once()
     mock_PostFormURL.assert_called_once_with(mock_loadData.return_value)

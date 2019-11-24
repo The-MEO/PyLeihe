@@ -127,7 +127,7 @@ def test_run_console(mock_popen, capsys):
     c = pylmain.run_console(["command_2", "param2", "value2"])
     assert c == 1, "should return the exit code"
     captured = capsys.readouterr()
-    assert not "OK" in captured.out
+    assert "OK" not in captured.out
     assert mock_stds[0] in captured.out
     assert mock_stds[1] in captured.out
 
@@ -147,7 +147,7 @@ def test_dev_make(mock_run_console):
 @mock.patch('os.path.isdir')
 @mock.patch('logging.handlers.RotatingFileHandler')
 @mock.patch('logging.basicConfig')
-def test_loglevel(mock_basicConfig, mock_RotatingFileHandler, mock_isdir, mock_makedirs):
+def test_loglevel(mock_basicConfig, mock_RotatingFileHandler, mock_isdir, mock_makedirs, caplog):
     """
     checks the loglevel option
     """
@@ -168,3 +168,5 @@ def test_loglevel(mock_basicConfig, mock_RotatingFileHandler, mock_isdir, mock_m
     mock_isdir.return_value = False
     c = pylmain.main(cmd)
     mock_makedirs.assert_called_once_with(params_isdir[0])
+    if len(caplog.record_tuples) == 1:
+        caplog.clear()
