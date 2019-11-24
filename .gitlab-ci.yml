@@ -16,6 +16,8 @@ pytest:3.6:
       - htmlcov
       - coverage.xml
       - .coverage
+    reports:
+      junit: pjunit.xml
     expire_in: 30 days
   script:
     - pytest 

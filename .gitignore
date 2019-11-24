@@ -3,6 +3,7 @@ doc
 htmlcov
 .coverage
 coverage.xml
+pjunit.xml
 .pytest_cache
 
 # python stuff
