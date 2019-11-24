@@ -20,7 +20,7 @@ def correct_search_urls(PyLN):
 
 def correct_searchurls_land(land):
     """
-    Correct some special searchurls for all Bibs in one `BundesLand`
+    Correct some special searchurls for all Bibs in one `LocalGroup`
 
     Some libraries of alliances use different URLs.
     This function is intended to merge outliers that are not automatically detected.
@@ -28,7 +28,7 @@ def correct_searchurls_land(land):
     will need maintenance in the future if the URLs change.
 
     Argument:
-        land (PyLeihe.bibindex.BundesLand): with libraries with search_urls to be corrected
+        land (PyLeihe.bibindex.LocalGroup): with libraries with search_urls to be corrected
     """
     # pylint: disable=line-too-long
     if land["libell-e"] is not None and land.name in ("Badenwuerttemberg", "Rheinlandpfalz"):

@@ -4,7 +4,7 @@ Unit and function tests to check all json related function and methods.
 # pylint: disable=wrong-import-position,wildcard-import
 from unittest import mock
 import _paths  # pylint: disable=unused-import
-from PyLeihe import PyLeiheNet, BundesLand, Bibliography
+from PyLeihe import PyLeiheNet, LocalGroup, Bibliography
 from PyLeihe.basic import PyLeiheWeb
 
 
@@ -71,9 +71,9 @@ def test_PyLeiheNet_to_json():
     check_jsonMockList(r)
 
 
-@mock.patch('PyLeihe.BundesLand.loadFromJSON')
+@mock.patch('PyLeihe.LocalGroup.loadFromJSON')
 @mock.patch('PyLeihe.PyLeiheNet._loadJSONFile')
-def test_PyLeiheNet_from_json(mock_loadJSONFile, mock_BundesLandloadFromJSON):
+def test_PyLeiheNet_from_json(mock_loadJSONFile, mock_LocalGrouploadFromJSON):
     """
     Checks the conversion of an `PyLeiheNet` instance from json
     """
@@ -83,7 +83,7 @@ def test_PyLeiheNet_from_json(mock_loadJSONFile, mock_BundesLandloadFromJSON):
     # check both paths: with direct data or import from file
     for branch in range(0, 2):
         mock_loadJSONFile.reset_mock()
-        mock_BundesLandloadFromJSON.reset_mock()
+        mock_LocalGrouploadFromJSON.reset_mock()
         mock_loadJSONFile.return_value = j
         if branch == 0:
             pln = PyLeiheNet.loadFromJSON(data=j)
@@ -92,22 +92,22 @@ def test_PyLeiheNet_from_json(mock_loadJSONFile, mock_BundesLandloadFromJSON):
             # check the work inside the function
             assert mock_loadJSONFile.call_args == mock.call(filepath),\
                 "only one parameter (filename)"
-        assert mock_BundesLandloadFromJSON.call_count == len(j)
-        assert len(mock_BundesLandloadFromJSON.call_args_list) == len(j)
+        assert mock_LocalGrouploadFromJSON.call_count == len(j)
+        assert len(mock_LocalGrouploadFromJSON.call_args_list) == len(j)
         for call_data in j.values():
-            count = len([x for x in mock_BundesLandloadFromJSON.call_args_list
+            count = len([x for x in mock_LocalGrouploadFromJSON.call_args_list
                          if x == mock.call(call_data)])
             assert count == 1, "every dict value should be exactly one time the call parameter"
         # check the end result
         assert len(pln.Laender) == len(j)
 
 
-# BundesLand
-def test_BundesLand_to_json():
+# LocalGroup
+def test_LocalGroup_to_json():
     """
-    Checks the conversion of an `BundesLand` instance to json
+    Checks the conversion of an `LocalGroup` instance to json
     """
-    bl = BundesLand("42", "the land of red towels")
+    bl = LocalGroup("42", "the land of red towels")
     j = bl.reprJSON()
     assert j["id"] == 42, "check ID convertion from string to int"
     assert j["name"][0] == "T", "check name capitalize"
