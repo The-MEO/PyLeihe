@@ -2,6 +2,7 @@
 This module provides basic functions for the use of the package.
 Most of the functions are used for the command line interface in `__main__.py`
 """
+import logging
 from multiprocessing.dummy import Pool
 from . import PyLeiheNet
 
@@ -71,7 +72,11 @@ def makejson(reload_data=False, filename="", to_filename=""):
         print("Lade Bibliotheken der Bundeslaender")
         pln.loadallBundesLaender(groupbytitle=True, loadsearchURLs=False)
     else:
-        pln.loadFromJSON(filename=filename)
+        try:
+            pln = pln.loadFromJSON(filename=filename)
+        except FileNotFoundError:
+            logging.exception("The json file '%s' to import does not exist.", filename)
+            return None
     print("SearchURLs manuell ergänzen")
     correct_search_urls(pln)
     print("SearchURLslLaden")
@@ -125,6 +130,7 @@ def search_list(search="", category=None, use_json=True, jsonfile='', threads=4)
         jsonfile (str): path to json file (used for `use_json = True`)
         threads (int): number of concurrent threads to be used for searching
     """
+    logging.debug("SearchList start")
     pln = PyLeiheNet()
     if use_json:
         pln = pln.loadFromJSON(filename=jsonfile)
@@ -132,6 +138,7 @@ def search_list(search="", category=None, use_json=True, jsonfile='', threads=4)
         pln.getBundesLaender()
         pln.loadallBundesLaender(groupbytitle=True, loadsearchURLs=False)
     bibs = [b for l in pln.Laender for b in l.Bibliotheken]
+    logging.debug("Libraries: %i", len(bibs))
     results = []
     if threads > 0:
         workpool = Pool(threads)
