@@ -1,12 +1,9 @@
 """
 Tests to check the command line interface from the module
 """
-import sys
-import os
+# pylint: disable=wrong-import-position,wildcard-import
 from unittest import mock
-import pytest
-DIR = os.path.dirname(__file__)
-sys.path.append(os.path.join(DIR, ".."))
+import _paths  # pylint: disable=unused-import
 from PyLeihe import __main__ as pylmain
 
 
@@ -21,48 +18,77 @@ def test_checkmaincall():
                 assert mock_exit.call_args[0][0] == 42
 
 
-@mock.patch('PyLeihe.__main__.run_console')
+@mock.patch('PyLeihe.__main__.dev_make')
 @mock.patch('PyLeihe.__main__.search_print')
 @mock.patch('PyLeihe.__main__.makejson')
-def test_main_nothing(mock_makejson, mock_search_print, mock_run_console):
+def test_main_nothing(mock_makejson, mock_search_print, mock_dev_make):
+    """
+    Test checks that no actions are performed without parameter call.
+    Ideally, the help should be displayed, but this is not yet checked.
+    """
     pylmain.main([])
     mock_makejson.assert_not_called()
     mock_search_print.assert_not_called()
-    mock_run_console.assert_not_called()
+    mock_dev_make.assert_not_called()
 
 
-@mock.patch('PyLeihe.__main__.run_console')
+@mock.patch('PyLeihe.__main__.dev_make')
 @mock.patch('PyLeihe.__main__.search_print')
 @mock.patch('PyLeihe.__main__.makejson')
-def test_main_makejson(mock_makejson, mock_search_print, mock_run_console):
+def test_main_makejson(mock_makejson, mock_search_print, mock_dev_make):
+    """
+    test checks whether the makejson parameter calls the corresponding function only.
+    In addition to a simple call, it also controls specifying a json file
+    and the command to load the data.
+    """
     pylmain.main(["--makejson"])
     mock_makejson.assert_called_once_with(False, "")
     mock_search_print.assert_not_called()
-    mock_run_console.assert_not_called()
+    mock_dev_make.assert_not_called()
 
     mock_makejson.reset_mock()
     pylmain.main(["--makejson", '--loadonline', "-j", "./path/to/file"])
     mock_makejson.assert_called_once_with(True, "./path/to/file")
 
 
-@mock.patch('PyLeihe.__main__.run_console')
+@mock.patch('PyLeihe.__main__.dev_make')
 @mock.patch('PyLeihe.__main__.search_print')
 @mock.patch('PyLeihe.__main__.makejson')
-def test_main_search(mock_makejson, mock_search_print, mock_run_console):
+def test_main_search(mock_makejson, mock_search_print, mock_dev_make):
+    """
+    Checks parsing with some search parameters.
+    """
     pylmain.main(["-s", "TestSuche42"])
-    a, k = mock_search_print.call_args
+    _a, k = mock_search_print.call_args
     assert k['search'] == "TestSuche42", "argument search word is at the right function parameter"
-    assert k['jsonfile'] != "TestSuche42", "argument search word is at the right function parameter (not json file path)"
-    assert k['use_json'] == True, "default use local json file"
+    assert k['jsonfile'] != "TestSuche42", "argument search word is at the right function param" \
+                            "(not json file path)"
+    assert k['use_json'] is True, "default use local json file"
 
-    pylmain.main(["-s", "StarTrek", "--threads", "42"])
-    a, k = mock_search_print.call_args
+    pylmain.main(["-s", "StarTrek", "--threads", "42", "-c", "eBook"])
+    _a, k = mock_search_print.call_args
     assert k['search'] == "StarTrek", "check search word"
     assert k['threads'] == 42, "check thread parameter"
+    assert k['category'] == pylmain.MediaType.eBook, "check category parameter"
 
     mock_makejson.assert_not_called()
-    mock_run_console.assert_not_called()
+    mock_dev_make.assert_not_called()
     assert mock_search_print.call_count == 2
+
+
+@mock.patch('PyLeihe.__main__.dev_make')
+@mock.patch('PyLeihe.__main__.search_print')
+@mock.patch('PyLeihe.__main__.makejson')
+def test_main_make(mock_makejson, mock_search_print, mock_dev_make):
+    """
+    Function tests whether the make function was called with the corresponding
+    command line parameter.
+    """
+    ret_main = pylmain.main(["--make"])
+    assert ret_main == 0, "main should return no error exit code"
+    mock_search_print.assert_not_called()
+    mock_makejson.assert_not_called()
+    assert mock_dev_make.call_count == 1
 
 
 def test_parseargs():
@@ -71,6 +97,76 @@ def test_parseargs():
     """
     parsed = pylmain.parseargs(["--makejson", "--loadonline"])
     assert (parsed.makejson
-            and parsed.loadonline == True
-            and parsed.make == False
-            and parsed.test == False)
+            and parsed.loadonline is True
+            and parsed.make is False
+            and parsed.test is False)
+
+
+@mock.patch('PyLeihe.__main__.subprocess.Popen')
+def test_run_console(mock_popen, capsys):
+    """
+    Üper checks the functionality of the `run_console` function
+    """
+    instance = mock_popen.return_value
+    instance.returncode = 0
+
+    # first command with ok
+    cmd = ["command", "param1", "value"]
+    c = pylmain.run_console(cmd)
+    a, _k = mock_popen.call_args
+    assert a[0] == cmd, "command should be looped through"
+    assert c == 0, "should return the exit code"
+
+    captured = capsys.readouterr()
+    assert "OK" in captured.out
+
+    # second command with failure
+    instance.returncode = 1
+    mock_stds = ["mock_STDOUT", "mock_STDERR"]
+    mock_popen.return_value.communicate.return_value = mock_stds
+    c = pylmain.run_console(["command_2", "param2", "value2"])
+    assert c == 1, "should return the exit code"
+    captured = capsys.readouterr()
+    assert "OK" not in captured.out
+    assert mock_stds[0] in captured.out
+    assert mock_stds[1] in captured.out
+
+
+@mock.patch('PyLeihe.__main__.run_console')
+def test_dev_make(mock_run_console):
+    """
+    checks if the make jobs are called
+    """
+    pylmain.dev_make()
+    a, _k = mock_run_console.call_args
+    assert a[0][:3] == ["python3", "-m", "pdoc"], "check pdoc command"
+    assert mock_run_console.call_count == 1
+
+
+@mock.patch('os.makedirs')
+@mock.patch('os.path.isdir')
+@mock.patch('logging.handlers.RotatingFileHandler')
+@mock.patch('logging.basicConfig')
+def test_loglevel(mock_basicConfig, mock_RotatingFileHandler, mock_isdir, mock_makedirs, caplog):
+    """
+    checks the loglevel option
+    """
+    cmd = ["--log", "DEBUG"]
+    c = pylmain.main(cmd)
+    _a, k = mock_basicConfig.call_args
+    mock_basicConfig.assert_called_once()
+    assert c == 0, "should return the exit code"
+    assert k["level"] == 10
+    if mock_RotatingFileHandler.call_count > 0:
+        assert mock_isdir.call_count > 0, "if RotatingFileHandler is used, " \
+            "it have to check if the target folder exists."
+        params_isdir, _ = mock_isdir.call_args
+        params_rfh, _ = mock_RotatingFileHandler.call_args
+        assert params_isdir[0] in params_rfh[0], "isdir check should " \
+            "correspond to RotatingFileHandler target"
+    # Test automatic dir creation
+    mock_isdir.return_value = False
+    c = pylmain.main(cmd)
+    mock_makedirs.assert_called_once_with(params_isdir[0])
+    if len(caplog.record_tuples) == 1:
+        caplog.clear()

@@ -8,7 +8,7 @@ checks:              # set same as in .pylintrc
       threshold: 4
   file-lines:
     config:
-      threshold: 250
+      threshold: 300
   method-complexity:
     config:
       threshold: 5
@@ -38,14 +38,13 @@ plugins:
     enabled: true
   pylint:
     enabled: true
+    channel: "beta"
   radon: 
     enabled: true
     config: 
       threshold: "C"
   sonar-python:
     enabled: true
-    tests_patterns:
-      - TestPyLeihe/**
     checks:
       python:S117:
         enabled: false

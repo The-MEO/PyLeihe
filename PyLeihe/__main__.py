@@ -7,8 +7,11 @@ Help is displayed with the `-h` parameter:
     ```
 """
 import sys
-import subprocess
+import os
+import subprocess  # nosec
 import argparse
+import logging
+import logging.handlers
 from . import PyLeiheNet, MediaType  # pylint: disable=unused-import
 from .simple_functions import makejson, search_print
 
@@ -25,7 +28,7 @@ def run_console(cmd):
     """
     print('[  ] ', end='')
     print(' '.join(cmd), end='', flush=True)
-    pdoc = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
+    pdoc = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)  # nosec
     pdoc_pipe = pdoc.communicate(timeout=15)
     if pdoc.returncode == 1:
         print("\r[!!]")
@@ -52,17 +55,29 @@ def parseargs(args):
     parser.add_argument('--makejson', help='group and correct and finally saves the data to a json file', action='store_true')  # noqa: E501
     parser.add_argument('-j', '--jsonfile', help="Path to the jsonfile", default="")  # noqa: E501
     parser.add_argument('-s', '--search', help="Search for keywords in all bibs")  # noqa: E501
-    parser.add_argument('-c', '--category', help="Media category", type=lambda t: MediaType[t], choices=list(MediaType), default=MediaType.alleMedien)  # noqa: E501
+    parser.add_argument('-c', '--category', help="Media category", type=MediaType.__getitem__, choices=list(MediaType), default=MediaType.alleMedien)  # noqa: E501
     parser.add_argument('-t', '--top', help="Number of print results", type=int, default=-1)  # noqa: E501
     parser.add_argument('--threads', help="Number of used parallel threads", type=int, default=4)  # noqa: E501
     parser.add_argument('--csv', help="stores result in csv", action='store_true')  # noqa: E501
     parser.add_argument('--make', help="[only for Developer] do some build tasks", action='store_true')  # noqa: E501
     parser.add_argument('--test', help="[only for Developer] do some test tasks", action='store_true')  # noqa: E501
     parser.add_argument('--version', action='version', version='%(prog)s 0.1')  # noqa: E501
+    parser.add_argument("-l", "--log", dest="logLevel", choices=['DEBUG', 'INFO', 'WARNING', 'ERROR', 'CRITICAL'], help="Set the logging level")  # noqa: E501
     parsed_args = parser.parse_args(args)  # noqa: E501
     # pylint: enable=line-too-long
     # print(parsed_args)
     return parsed_args
+
+
+def dev_make():
+    """
+    ONLY FOR DEVELOPER
+    runs some commands for final make.
+
+    Make Jobs:
+        * create documentation with pdoc
+    """
+    run_console(["python3", "-m", "pdoc", "--html", "-o", "./doc", "-f", "PyLeihe"])
 
 
 def main(args):
@@ -82,6 +97,22 @@ def main(args):
 
     """
     parsed_args = parseargs(args)
+    if parsed_args.logLevel:
+        logPath = "logs"
+        fileName = "main"
+        basic_format = r"%(asctime)s [%(levelname)-8.8s][%(threadName)-10.10s]" \
+            r"%(funcName)10s(): %(message)s"
+        if not os.path.isdir(logPath):
+            logging.warning("Creating the destination folder (%s) "
+                            "for saving the log files - did not exist yet.", logPath)
+            os.makedirs(logPath)
+        logging.basicConfig(level=getattr(logging, parsed_args.logLevel),
+                            format=basic_format,
+                            handlers=[
+                                logging.StreamHandler(),
+                                logging.handlers.RotatingFileHandler(
+                                    "{0}/{1}.log".format(logPath, fileName), backupCount=3)]
+                            )
     if parsed_args.makejson:
         makejson(parsed_args.loadonline, parsed_args.jsonfile)
     if parsed_args.search is not None:
@@ -92,9 +123,11 @@ def main(args):
                      jsonfile=parsed_args.jsonfile,
                      threads=parsed_args.threads)
     if parsed_args.make:
-        run_console(["python3", "-m", "pdoc", "--html", "-o", "./doc", "-f", "PyLeihe"])
+        dev_make()
     if parsed_args.test:
         raise NotImplementedError("run the test in the project directory with `pytest`")
+    if parsed_args.csv:
+        raise NotImplementedError("CSV export not yet available")
     return 0
 
 
