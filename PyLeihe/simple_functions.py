@@ -32,21 +32,22 @@ def correct_searchurls_land(land):
         land (PyLeihe.bibindex.LocalGroup): with libraries with search_urls to be corrected
     """
     # pylint: disable=line-too-long
-    if land["libell-e"] is not None and land.name in ("Badenwuerttemberg", "Rheinlandpfalz"):
+    land_name = land.name.capitalize()
+    if land["libell-e"] is not None and land_name in ("Badenwuerttemberg", "Rheinlandpfalz"):
         land["libell-e"].search_url = "https://www2.onleihe.de/libell-e-sued/frontend/search,0-0-0-0-0-0-0-0-0-0-0.html"  # noqa: E501
     elif land["libell-e"] is not None:
         land["libell-e"].search_url = "https://www2.onleihe.de/libell-e-nord/frontend/search,0-0-0-0-0-0-0-0-0-0-0.html"  # noqa: E501
-    if land.name == "Badenwuerttemberg":
+    if land_name == "Badenwuerttemberg":
         remove_baden = land["baden"]
         if remove_baden is not None:
             land.Bibliotheken.remove(remove_baden)
-    elif land.name == "Sachsen":
+    elif land_name == "Sachsen":
         land.fix_searchurl("grossenhain", "https://www2.onleihe.de/bibo-on/frontend/search,0-0-0-0-0-0-0-0-0-0-0.html")  # noqa: E501
-    elif land.name == "Schleswigholstein":
+    elif land_name == "Schleswigholstein":
         land.fix_searchurl("amt-buechen", "https://www2.onleihe.de/bibo-on/frontend/search,0-0-0-0-0-0-0-0-0-0-0.html")  # noqa: E501
-    elif land.name == "Nordrheinwestfalen":
+    elif land_name == "Nordrheinwestfalen":
         land.fix_searchurl("stadtdo", "https://www2.onleihe.de/dortmund/frontend/search,0-0-0-0-0-0-0-0-0-0-0.html")  # noqa: E501
-    elif land.name == "Sachsenanhalt":
+    elif land_name == "Sachsenanhalt":
         land.fix_searchurl("Sangerhausen", "https://biblio24.onleihe.de/verbund_sachsen_anhalt/frontend/welcome,51-0-0-100-0-0-1-0-0-0-0.html")  # noqa: E501
     # pylint: enable=line-too-long
 
@@ -167,9 +168,10 @@ def search_print(top=10, *args, **kwargs):  # pylint: disable=keyword-arg-before
         kwargs: passed to `search_list`
     """
     results = search_list(*args, **kwargs)
-    results.sort(key=lambda x: x[1] if x is not None else -5, reverse=True)
+    results = list(filter(None, results)) 
+    results.sort(key=lambda x: x[1], reverse=True)
     for i, r in enumerate(results):
-        if i > top > 0:
+        if i >= top > 0:
             break
         b = r[0]
         title = b.title or "NA"
