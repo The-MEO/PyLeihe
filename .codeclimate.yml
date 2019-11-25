@@ -39,6 +39,9 @@ plugins:
   pylint:
     enabled: true
     channel: "beta"
+    checks:
+      import-error:
+        enabled: false
   radon: 
     enabled: true
     config: 
