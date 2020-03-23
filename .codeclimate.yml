@@ -36,9 +36,6 @@ plugins:
     enabled: true
   pep8:
     enabled: true
-  pylint:
-    enabled: true
-    channel: "beta"
   radon: 
     enabled: true
     config: 
