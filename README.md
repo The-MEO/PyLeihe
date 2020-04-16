@@ -65,3 +65,6 @@ How the individual classes can be used together can be found in the functions fr
 
 The source code documentation was created automatically with [pdoc3](https://pdoc3.github.io/pdoc/).
 To rebuild the documentation you can either run `pdoc` manually or start the package with the option `python3 -m PyLeihe --make`. 
+
+## Credits
+Project Icon from [Icons8](https://icons8.de/icons/set/google-web-search).
