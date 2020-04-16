@@ -7,6 +7,7 @@ include:
   - template: Code-Quality.gitlab-ci.yml
   - template: Dependency-Scanning.gitlab-ci.yml
   - template: SAST.gitlab-ci.yml
+  - template: License-Scanning.gitlab-ci.yml
 
 default:
   image: python:3.6-alpine
