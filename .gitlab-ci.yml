@@ -10,9 +10,6 @@ include:
 
 default:
   image: python:3.6-alpine
-  before_script:
-    - pip install -r requirements.txt
-    - pip install -r requirements_tools.txt
 
 pytest:3.6:
   stage: test
@@ -24,6 +21,9 @@ pytest:3.6:
     reports:
       junit: pjunit.xml
     expire_in: 30 days
+  before_script:
+    - pip install -r requirements.txt
+    - pip install -r requirements_tools.txt
   script:
     - pytest 
 
@@ -36,6 +36,9 @@ pytest:3:
       - htmlcov3
       - coverage3.xml
     expire_in: 30 days
+  before_script:
+    - pip install -r requirements.txt
+    - pip install -r requirements_tools.txt
   script:
     - pytest
   after_script:
@@ -48,6 +51,9 @@ pdoc:
     paths:
       - doc/PyLeihe
     expire_in: 30 days
+  before_script:
+    - pip install -r requirements.txt
+    - pip install -r requirements_tools.txt
   script:
     - pdoc --html -o ./doc -f PyLeihe
 
